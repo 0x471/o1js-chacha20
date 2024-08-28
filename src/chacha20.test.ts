@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { UInt32, assert } from 'o1js';
-import { quarterRound } from './chacha20';
+import { ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
 
@@ -13,7 +13,7 @@ describe('ChaCha', () => {
         let c = UInt32.fromValue(0x9b8d6f43n);
         let d = UInt32.fromValue(0x01234567n);
 
-        let [result_a, result_b, result_c, result_d] = quarterRound(a, b, c, d);
+        let [result_a, result_b, result_c, result_d] = ChaChaState.quarterRound(a, b, c, d);
 
         let expected_a = UInt32.fromValue(0xea2a92f4n);
         let expected_b = UInt32.fromValue(0xcb1cf8cen);
