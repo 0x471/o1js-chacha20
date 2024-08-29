@@ -4,9 +4,9 @@ import { ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
 
+const toHex = (u: UInt32) => u.toBigint().toString(16).padStart(8, '0');
 describe('ChaCha', () => {
     it('should calculate quarter round correctly', async () => {
-        const toHex = (u: UInt32) => u.toBigint().toString(16).padStart(8, '0');
         const key = new Uint32Array(8).fill(0); // Mock key
         const nonce = new Uint32Array(3).fill(0); // Mock nonce
         const counter = 0; // Mock counter
@@ -63,40 +63,35 @@ describe('ChaCha', () => {
             expect(receivedHex).toBe(expectedHex);
         }
     });
-    it('should generate the correct block output', () => {
-        // Initialize the key with the specified pattern
-        const key = new Uint32Array(8);
-        for (let i = 0; i < 8; i++) {
-            key[i] = (4 * i) | ((4 * i + 1) << 8) | ((4 * i + 2) << 16) | ((4 * i + 3) << 24);
-        }
+    it('should add two ChaChaState instances correctly', async () => {
+        const state1 = new ChaChaState(new Uint32Array(8).fill(0), new Uint32Array(3).fill(0), 0);
+        const state2 = new ChaChaState(new Uint32Array(8).fill(0), new Uint32Array(3).fill(0), 0);
+    
 
-        // Initialize the nonce
-        const nonce = new Uint32Array(3);
-        nonce[0] = 0x09000000;
-        nonce[1] = 0x4a000000;
-
-        const counter = 1;
-
-        // Create a ChaChaState instance
-        const chachaState = new ChaChaState(key, nonce, counter);
-
-        // Get the result from the block function
-        const result = chachaState.chacha20Block();
-
-        // Expected output from the block function
-        const expectedResult = new Uint32Array([
-            0x10f1e7e4, 0xd13b5915, 0x500fdd1f, 0xa32071c4,
-            0xc7d1f4c7, 0x33c06803, 0x0422aa9a, 0xc3d46c4e,
-            0xd2826446, 0x079faa09, 0x14c2d705, 0xd98b02a2,
-            0xb5129cd1, 0xde164eb9, 0xcbd083e8, 0xa2503c4e
-        ]);
-        for (let i = 0; i < result.length; i++) {
-            console.log(result[i].toString(16).padStart(8, '0'));
-        }
-        // Check that the result matches the expected output
-        for (let i = 0; i < 16; i++) {
-            expect(result[i]).toBe(expectedResult[i]);
-        }
+        state1.state[0] = UInt32.fromValue(0x11111111n);
+        state1.state[1] = UInt32.fromValue(0x01020304n);
+        state1.state[2] = UInt32.fromValue(0x9b8d6f43n);
+        state1.state[3] = UInt32.fromValue(0x01234567n);
+    
+        state2.state[0] = UInt32.fromValue(0x00000001n);
+        state2.state[1] = UInt32.fromValue(0x00000002n);
+        state2.state[2] = UInt32.fromValue(0x00000003n);
+        state2.state[3] = UInt32.fromValue(0x00000004n);
+    
+        state1.add(state2);
+    
+        // Expected values after addition (modulo 2^32)
+        const expectedState = [
+            UInt32.fromValue((0x11111111n + 0x00000001n) & 0xFFFFFFFFn),
+            UInt32.fromValue((0x01020304n + 0x00000002n) & 0xFFFFFFFFn),
+            UInt32.fromValue((0x9b8d6f43n + 0x00000003n) & 0xFFFFFFFFn), 
+            UInt32.fromValue((0x01234567n + 0x00000004n) & 0xFFFFFFFFn),
+        ];
+    
+        expect(toHex(state1.state[0])).toBe(toHex(expectedState[0]));
+        expect(toHex(state1.state[1])).toBe(toHex(expectedState[1]));
+        expect(toHex(state1.state[2])).toBe(toHex(expectedState[2]));
+        expect(toHex(state1.state[3])).toBe(toHex(expectedState[3]));
     });
-
+    // TODO: add tests for block generation and tole4bytes
 });

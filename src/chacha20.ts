@@ -2,6 +2,7 @@ import {
     UInt32,
     Gadgets,
     Field,
+    UInt8,
 } from 'o1js';
 
 export { ChaChaState };
@@ -68,36 +69,47 @@ class ChaChaState {
             this.state[i] = UInt32.fromFields([Field.from((this.state[i].toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)]);
         }
     }
+//    toLe4Bytes(): Uint8Array {
+//         const length = this.state.length;
+//         const buffer = new Uint8Array(length * 4);
 
-    toLe4Bytes(): Uint32Array {
-        const res = new Uint32Array(16);
-        for (let i = 0; i < 16; i++) {
-            const value = this.state[i].toBigint();
-            res[i] = Number(
-                ((value & 0xFFn) << 24n) |
-                ((value & 0xFF00n) << 8n) |
-                ((value & 0xFF0000n) >> 8n) |
-                ((value & 0xFF000000n) >> 24n)
-            );
-        }
-        return res;
-    }
+//         for (let i = 0; i < length; i++) {
+//             // Explicitly specify the type of value as number
+//             const value: number = this.state[i] as number;
 
-    chacha20Block(): Uint32Array {
-        const workingState = this.state.map(value => UInt32.fromValue(value.toBigint())); // Copy the state
+//             // Convert each number value to 4 bytes in little-endian order
+//             buffer[i * 4]     = value & 0xFF;
+//             buffer[i * 4 + 1] = (value >> 8) & 0xFF;
+//             buffer[i * 4 + 2] = (value >> 16) & 0xFF;
+//             buffer[i * 4 + 3] = (value >> 24) & 0xFF;
+//         }
 
+//         return buffer;
+//     }
+    
+    
+     
+
+    chacha20Block(): UInt32[] {
+        // Convert each value in this.state to UInt32
+        const workingState: UInt32[] = this.state.map(value => UInt32.fromValue(value.toBigint()));
+
+        // Perform 10 rounds of the inner block function
         for (let i = 0; i < 10; i++) {
             ChaChaState.innerBlock(workingState);
         }
 
+        // Create a new ChaChaState instance from the working state
         const newState = new ChaChaState(
             new Uint32Array(workingState.slice(0, 8).map(v => Number(v.toBigint()))),
             new Uint32Array(workingState.slice(8, 11).map(v => Number(v.toBigint()))),
             Number(workingState[11].toBigint())
         );
 
+        // Add the new state to the current state
         this.add(newState);
-
-        return this.toLe4Bytes();
+        return this.state;
     }
+
+
 }
