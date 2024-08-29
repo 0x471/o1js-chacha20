@@ -4,7 +4,6 @@ import {
     Field,
     UInt8,
 } from 'o1js';
-import { toHexString } from './chacha20.test';
 
 export { ChaChaState, chacha20Block };
 
