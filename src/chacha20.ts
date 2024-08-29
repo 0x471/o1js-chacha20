@@ -16,9 +16,8 @@ class ChaChaState {
             counter, nonce[0], nonce[1], nonce[2],
         ];
     
-        // Filter out any undefined values and convert to UInt32 format
         this.state = stateValues
-            .filter(value => value !== undefined)  // Filter out undefined values
+            .filter(value => value !== undefined)
             .map(value => UInt32.fromValue(BigInt(value)));
     }
 
@@ -69,23 +68,23 @@ class ChaChaState {
             this.state[i] = UInt32.fromFields([Field.from((this.state[i].toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)]);
         }
     }
-//    toLe4Bytes(): Uint8Array {
-//         const length = this.state.length;
-//         const buffer = new Uint8Array(length * 4);
+    //    toLe4Bytes(): Uint8Array {
+    //         const length = this.state.length;
+    //         const buffer = new Uint8Array(length * 4);
 
-//         for (let i = 0; i < length; i++) {
-//             // Explicitly specify the type of value as number
-//             const value: number = this.state[i] as number;
+    //         for (let i = 0; i < length; i++) {
+    //             // Explicitly specify the type of value as number
+    //             const value: number = this.state[i] as number;
 
-//             // Convert each number value to 4 bytes in little-endian order
-//             buffer[i * 4]     = value & 0xFF;
-//             buffer[i * 4 + 1] = (value >> 8) & 0xFF;
-//             buffer[i * 4 + 2] = (value >> 16) & 0xFF;
-//             buffer[i * 4 + 3] = (value >> 24) & 0xFF;
-//         }
+    //             // Convert each number value to 4 bytes in little-endian order
+    //             buffer[i * 4]     = value & 0xFF;
+    //             buffer[i * 4 + 1] = (value >> 8) & 0xFF;
+    //             buffer[i * 4 + 2] = (value >> 16) & 0xFF;
+    //             buffer[i * 4 + 3] = (value >> 24) & 0xFF;
+    //         }
 
-//         return buffer;
-//     }
+    //         return buffer;
+    //     }
     
     
      
