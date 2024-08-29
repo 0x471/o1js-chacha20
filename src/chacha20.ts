@@ -6,8 +6,24 @@ import {
 
 export { ChaChaState };
 
+const ChaChaConstants = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
 
 class ChaChaState {
+    state: Uint32Array;
+    /**
+     * Instantiate a new ChaCha20 state 
+     */
+    constructor(public key: Uint32Array, nonce: Uint32Array, counter: number) {
+        const stateValues: number[] = [
+            ChaChaConstants[0], ChaChaConstants[1], ChaChaConstants[2], ChaChaConstants[3],
+            ...key.slice(0, 16),
+            counter,
+            ...nonce.slice(0, 4)
+        ];
+
+        this.state = new Uint32Array(stateValues);
+    }
+
     /**
     * Performs a quarter round on 32-byte values.
     */
@@ -35,6 +51,8 @@ class ChaChaState {
         return [a, b, c, d];
     }
 
+
+    // TODO: Fix variable naming, a0, a1, a2, a3 ->  a0, b0, c0, d0...
     /**
      * Performs the ChaCha20 inner block operations on the state array.
      */
