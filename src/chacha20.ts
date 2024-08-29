@@ -10,16 +10,14 @@ const ChaChaConstants = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
 
 class ChaChaState {
     state: UInt32[];
-    
+
     constructor(public key: Uint32Array, nonce: Uint32Array, counter: number) {
-        // Initialize state based on the key, nonce, and counter
         const stateValues: number[] = [
             ChaChaConstants[0], ChaChaConstants[1], ChaChaConstants[2], ChaChaConstants[3],
             ...Array.from(key.slice(0, 8)),
             counter,
             ...Array.from(nonce.slice(0, 3))
         ];
-
         this.state = stateValues.map(value => UInt32.fromValue(BigInt(value)));
     }
 

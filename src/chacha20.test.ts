@@ -4,24 +4,20 @@ import { ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
 
-const toHex = (u: UInt32) => u.toBigint().toString(16).padStart(8, '0');
-
 describe('ChaCha', () => {
     it('should calculate quarter round correctly', async () => {
-        // Initialize ChaChaState with arbitrary values
+        const toHex = (u: UInt32) => u.toBigint().toString(16).padStart(8, '0');
         const key = new Uint32Array(8).fill(0); // Mock key
         const nonce = new Uint32Array(3).fill(0); // Mock nonce
         const counter = 0; // Mock counter
 
         const chacha = new ChaChaState(key, nonce, counter);
 
-        // Set specific values to simulate the state before the quarter round
         chacha.state[0] = UInt32.fromValue(0x11111111n);
         chacha.state[1] = UInt32.fromValue(0x01020304n);
         chacha.state[2] = UInt32.fromValue(0x9b8d6f43n);
         chacha.state[3] = UInt32.fromValue(0x01234567n);
 
-        // Perform the quarter round directly on the state
         ChaChaState.quarterRound(chacha.state, 0, 1, 2, 3);
 
         // Expected values after the quarter round
@@ -32,18 +28,75 @@ describe('ChaCha', () => {
             UInt32.fromValue(0x5881c4bbn), // expected d
         ];
 
-        console.log('Result A:', toHex(chacha.state[0]));
-        console.log('Expected A:', toHex(expectedState[0]));
-        console.log('Result B:', toHex(chacha.state[1]));
-        console.log('Expected B:', toHex(expectedState[1]));
-        console.log('Result C:', toHex(chacha.state[2]));
-        console.log('Expected C:', toHex(expectedState[2]));
-        console.log('Result D:', toHex(chacha.state[3]));
-        console.log('Expected D:', toHex(expectedState[3]));
-
         expect(toHex(chacha.state[0])).toBe(toHex(expectedState[0]));
         expect(toHex(chacha.state[1])).toBe(toHex(expectedState[1]));
         expect(toHex(chacha.state[2])).toBe(toHex(expectedState[2]));
         expect(toHex(chacha.state[3])).toBe(toHex(expectedState[3]));
     });
+    it('should initialize state correctly based on key, nonce, and counter', () => {
+        // Define the key, nonce, and counter
+        const key = new Uint32Array([
+            0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f,
+            0x10111213, 0x14151617, 0x18191a1b, 0x1c1d1e1f
+        ]);
+        const nonce = new Uint32Array([0x09000000, 0x4a000000, 0x00000000]);
+        const counter = 1;  // 32-bit value
+
+        const chachaState = new ChaChaState(key, nonce, counter);
+
+        const expectedValues: number[] = [
+            0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, // ChaCha constants
+            0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f, // Key
+            0x10111213, 0x14151617, 0x18191a1b, 0x1c1d1e1f, // Key
+            0x00000001,                                    // Block count
+            0x09000000, 0x4a000000, 0x00000000            // Nonce
+        ];
+
+        const expectedState = expectedValues.map(value => UInt32.fromValue(BigInt(value)));
+        const toHexString = (value: UInt32) => {
+            return value.toString().padStart(8, '0');
+        };
+
+        for (let i = 0; i < chachaState.state.length; i++) {
+            const receivedHex = toHexString(chachaState.state[i]);
+            const expectedHex = toHexString(expectedState[i]);
+            expect(receivedHex).toBe(expectedHex);
+        }
+    });
+    it('should generate the correct block output', () => {
+        // Initialize the key with the specified pattern
+        const key = new Uint32Array(8);
+        for (let i = 0; i < 8; i++) {
+            key[i] = (4 * i) | ((4 * i + 1) << 8) | ((4 * i + 2) << 16) | ((4 * i + 3) << 24);
+        }
+
+        // Initialize the nonce
+        const nonce = new Uint32Array(3);
+        nonce[0] = 0x09000000;
+        nonce[1] = 0x4a000000;
+
+        const counter = 1;
+
+        // Create a ChaChaState instance
+        const chachaState = new ChaChaState(key, nonce, counter);
+
+        // Get the result from the block function
+        const result = chachaState.chacha20Block();
+
+        // Expected output from the block function
+        const expectedResult = new Uint32Array([
+            0x10f1e7e4, 0xd13b5915, 0x500fdd1f, 0xa32071c4,
+            0xc7d1f4c7, 0x33c06803, 0x0422aa9a, 0xc3d46c4e,
+            0xd2826446, 0x079faa09, 0x14c2d705, 0xd98b02a2,
+            0xb5129cd1, 0xde164eb9, 0xcbd083e8, 0xa2503c4e
+        ]);
+        for (let i = 0; i < result.length; i++) {
+            console.log(result[i].toString(16).padStart(8, '0'));
+        }
+        // Check that the result matches the expected output
+        for (let i = 0; i < 16; i++) {
+            expect(result[i]).toBe(expectedResult[i]);
+        }
+    });
+
 });
