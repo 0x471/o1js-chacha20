@@ -4,12 +4,25 @@ import {
     Field,
     UInt8,
 } from 'o1js';
+import { toHexString } from './chacha20.test';
 
-export { ChaChaState };
+export { ChaChaState, chacha20Block };
+
+function chacha20Block(key: Uint32Array, nonce: Uint32Array, counter: number): UInt32[] {
+    let state = new ChaChaState(key, nonce, counter);
+    let workingState = new ChaChaState(key, nonce, counter);
+
+    for (let i = 0; i < 10; i++) {
+        ChaChaState.innerBlock(workingState.state);
+    }
+
+    workingState.add(state);
+    return workingState.state;
+}
 
 class ChaChaState {
     state: UInt32[];
-    constructor(public key: Uint32Array, nonce: Uint32Array, counter: number) {
+    constructor(key: Uint32Array, nonce: Uint32Array, counter: number) {
         const stateValues: number[] = [
             0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, // ChaCha constants
             key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7],
@@ -68,48 +81,4 @@ class ChaChaState {
             this.state[i] = UInt32.fromFields([Field.from((this.state[i].toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)]);
         }
     }
-
-    toLe4Bytes(): UInt32[] {
-        const res: UInt32[] = [];
-
-        for (let i = 0; i < 16; i++) {
-            const value = this.state[i].toBigint();
-
-            // Convert to little-endian 4 bytes
-            const byte0 = (value & 0xFFn);
-            const byte1 = (value >> 8n) & 0xFFn;
-            const byte2 = (value >> 16n) & 0xFFn;
-            const byte3 = (value >> 24n) & 0xFFn;
-
-            const leValue = (byte0 << 24n) | (byte1 << 16n) | (byte2 << 8n) | byte3;
-            res.push(UInt32.fromValue(leValue));
-        }
-
-        return res;
-    }
-
-
-
-    // chacha20Block(): UInt32[] {
-    //     // Convert each value in this.state to UInt32
-    //     const workingState: UInt32[] = this.state.map(value => UInt32.fromValue(value.toBigint()));
-
-    //     // Perform 10 rounds of the inner block function
-    //     for (let i = 0; i < 10; i++) {
-    //         ChaChaState.innerBlock(workingState);
-    //     }
-
-    //     // Create a new ChaChaState instance from the working state
-    //     const newState = new ChaChaState(
-    //         new Uint32Array(workingState.slice(0, 8).map(v => Number(v.toBigint()))),
-    //         new Uint32Array(workingState.slice(8, 11).map(v => Number(v.toBigint()))),
-    //         Number(workingState[11].toBigint())
-    //     );
-
-    //     // Add the new state to the current state
-    //     this.add(newState);
-    //     return this.state;
-    // }
-
-
 }

@@ -1,9 +1,10 @@
 import { jest } from '@jest/globals';
 import { UInt32 } from 'o1js';
-import { ChaChaState } from './chacha20';
+import { chacha20Block, ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
 
+export {toHexString}
 function toHexString(value: UInt32): string {
     const numberValue = value.toBigint();
     return numberValue.toString(16).padStart(8, '0');
@@ -114,32 +115,27 @@ describe('ChaCha', () => {
             expect(receivedHex).toBe(expectedHex);
         }
 
-        // Assert toLe4Bytes conversion
-        const le4Bytes = chachaState.toLe4Bytes();
+    });
+    it("should calculate the block function correctly", () => {
+        let key = "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f";
+        let nonce = "00:00:00:09:00:00:00:4a:00:00:00:00";
+        const counter = 1;
 
-        const expectedLe4Bytes: UInt32[] = [
-            UInt32.fromValue(0x65787061n),  // Little-endian of 0x61707865
-            UInt32.fromValue(0x6E642033n),  // Little-endian of 0x3320646e
-            UInt32.fromValue(0x322D6279n),  // Little-endian of 0x79622d32
-            UInt32.fromValue(0x7465206Bn),  // Little-endian of 0x6b206574
-            UInt32.fromValue(0x00010203n),  // Little-endian of 0x03020100
-            UInt32.fromValue(0x04050607n),  // Little-endian of 0x07060504
-            UInt32.fromValue(0x08090A0Bn),  // Little-endian of 0x0b0a0908
-            UInt32.fromValue(0x0C0D0E0Fn),  // Little-endian of 0x0f0e0d0c
-            UInt32.fromValue(0x10111213n),  // Little-endian of 0x13121110
-            UInt32.fromValue(0x14151617n),  // Little-endian of 0x17161514
-            UInt32.fromValue(0x18191A1Bn),  // Little-endian of 0x1b1a1918
-            UInt32.fromValue(0x1C1D1E1Fn),  // Little-endian of 0x1f1e1d1c
-            UInt32.fromValue(0x01000000n),  // Little-endian of 0x00000001
-            UInt32.fromValue(0x00000009n),  // Little-endian of 0x09000000
-            UInt32.fromValue(0x0000004An),  // Little-endian of 0x4a000000
-            UInt32.fromValue(0x00000000n)   // Little-endian of 0x00000000
+        const keyArray = octetsToUint32Array(key);
+        const nonceArray = octetsToUint32Array(nonce);
+
+        const expectedState: UInt32[] = [
+            UInt32.fromValue(0xe4e7f110n), UInt32.fromValue(0x15593bd1n), UInt32.fromValue(0x1fdd0f50n), UInt32.fromValue(0xc47120a3n),
+            UInt32.fromValue(0xc7f4d1c7n), UInt32.fromValue(0x0368c033n), UInt32.fromValue(0x9aaa2204n), UInt32.fromValue(0x4e6cd4c3n),
+            UInt32.fromValue(0x466482d2n), UInt32.fromValue(0x09aa9f07n), UInt32.fromValue(0x05d7c214n), UInt32.fromValue(0xa2028bd9n),
+            UInt32.fromValue(0xd19c12b5n), UInt32.fromValue(0xb94e16den), UInt32.fromValue(0xe883d0cbn), UInt32.fromValue(0x4e3c50a2n)
         ];
         
-        for (let i = 0; i < le4Bytes.length; i++) {
-            expect(le4Bytes[i]).toEqual(expectedLe4Bytes[i]);
+        let chachaState = chacha20Block(keyArray, nonceArray, counter);
+        for (let i = 0; i < chachaState.length; i++) {
+            const receivedHex = toHexString(chachaState[i]);
+            const expectedHex = toHexString(expectedState[i]);
+            expect(receivedHex).toBe(expectedHex);
         }
-
-    });
-    // TODO: add tests for block generation
+    })
 });
