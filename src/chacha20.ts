@@ -9,85 +9,97 @@ export { ChaChaState };
 const ChaChaConstants = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
 
 class ChaChaState {
-    state: Uint32Array;
-    /**
-     * Instantiate a new ChaCha20 state 
-     */
+    state: UInt32[];
+    
     constructor(public key: Uint32Array, nonce: Uint32Array, counter: number) {
+        // Initialize state based on the key, nonce, and counter
         const stateValues: number[] = [
             ChaChaConstants[0], ChaChaConstants[1], ChaChaConstants[2], ChaChaConstants[3],
-            ...key.slice(0, 16),
+            ...Array.from(key.slice(0, 8)),
             counter,
-            ...nonce.slice(0, 4)
+            ...Array.from(nonce.slice(0, 3))
         ];
 
-        this.state = new Uint32Array(stateValues);
+        this.state = stateValues.map(value => UInt32.fromValue(BigInt(value)));
     }
 
-    /**
-    * Performs a quarter round on 32-byte values.
-    */
-    static quarterRound(a: UInt32, b: UInt32, c: UInt32, d: UInt32): [UInt32, UInt32, UInt32, UInt32] {
-        // 1.  a += b; d ^= a; d <<<= 16;
+    static quarterRound(state: UInt32[], aIndex: number, bIndex: number, cIndex: number, dIndex: number) {
+        let a = state[aIndex];
+        let b = state[bIndex];
+        let c = state[cIndex];
+        let d = state[dIndex];
+
         a = UInt32.fromFields([Field.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn)]);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
         d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 16, 'left')]);
 
-        // 2.  c += d; b ^= c; b <<<= 12;
         c = UInt32.fromFields([Field.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn)]);
         b = UInt32.from(b.toBigint() ^ c.toBigint());
         b = UInt32.fromFields([Gadgets.rotate32(b.toFields()[0], 12, 'left')]);
 
-        // 3.  a += b; d ^= a; d <<<= 8;
         a = UInt32.fromFields([Field.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn)]);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
         d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 8, 'left')]);
 
-        // 4.  c += d; b ^= c; b <<<= 7;
         c = UInt32.fromFields([Field.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn)]);
         b = UInt32.from(b.toBigint() ^ c.toBigint());
         b = UInt32.fromFields([Gadgets.rotate32(b.toFields()[0], 7, 'left')]);
 
-        return [a, b, c, d];
+        state[aIndex] = a;
+        state[bIndex] = b;
+        state[cIndex] = c;
+        state[dIndex] = d;
     }
 
-
-    // TODO: Fix variable naming, a0, a1, a2, a3 ->  a0, b0, c0, d0...
-    /**
-     * Performs the ChaCha20 inner block operations on the state array.
-     */
-    static innerBlock(chachaState: Uint32Array) {
-        // Convert Uint32Array to UInt32 array
-        const state = Array.from(chachaState).map(value => UInt32.fromValue(BigInt(value)));
-
+    static innerBlock(state: UInt32[]) {
         // Column rounds
-        const [a0, a1, a2, a3] = this.quarterRound(state[0], state[4], state[8], state[12]);
-        const [b0, b1, b2, b3] = this.quarterRound(state[1], state[5], state[9], state[13]);
-        const [c0, c1, c2, c3] = this.quarterRound(state[2], state[6], state[10], state[14]);
-        const [d0, d1, d2, d3] = this.quarterRound(state[3], state[7], state[11], state[15]);
-
-        // Reassign results
-        state[0] = a0; state[4] = a1; state[8] = a2; state[12] = a3;
-        state[1] = b0; state[5] = b1; state[9] = b2; state[13] = b3;
-        state[2] = c0; state[6] = c1; state[10] = c2; state[14] = c3;
-        state[3] = d0; state[7] = d1; state[11] = d2; state[15] = d3;
+        this.quarterRound(state, 0, 4, 8, 12);
+        this.quarterRound(state, 1, 5, 9, 13);
+        this.quarterRound(state, 2, 6, 10, 14);
+        this.quarterRound(state, 3, 7, 11, 15);
 
         // Diagonal rounds
-        const [e0, e1, e2, e3] = this.quarterRound(state[0], state[5], state[10], state[15]);
-        const [f0, f1, f2, f3] = this.quarterRound(state[1], state[6], state[11], state[12]);
-        const [g0, g1, g2, g3] = this.quarterRound(state[2], state[7], state[8], state[13]);
-        const [h0, h1, h2, h3] = this.quarterRound(state[3], state[4], state[9], state[14]);
+        this.quarterRound(state, 0, 5, 10, 15);
+        this.quarterRound(state, 1, 6, 11, 12);
+        this.quarterRound(state, 2, 7, 8, 13);
+        this.quarterRound(state, 3, 4, 9, 14);
+    }
 
-        // Reassign results
-        state[0] = e0; state[5] = e1; state[10] = e2; state[15] = e3;
-        state[1] = f0; state[6] = f1; state[11] = f2; state[12] = f3;
-        state[2] = g0; state[7] = g1; state[8] = g2; state[13] = g3;
-        state[3] = h0; state[4] = h1; state[9] = h2; state[14] = h3;
-
-        // Convert back to Uint32Array
-        for (let i = 0; i < chachaState.length; i++) {
-            chachaState[i] = Number(state[i].toBigint());
+    add(other: ChaChaState): void {
+        for (let i = 0; i < 16; i++) {
+            this.state[i] = UInt32.fromFields([Field.from((this.state[i].toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)]);
         }
     }
 
+    toLe4Bytes(): Uint32Array {
+        const res = new Uint32Array(16);
+        for (let i = 0; i < 16; i++) {
+            const value = this.state[i].toBigint();
+            res[i] = Number(
+                ((value & 0xFFn) << 24n) |
+                ((value & 0xFF00n) << 8n) |
+                ((value & 0xFF0000n) >> 8n) |
+                ((value & 0xFF000000n) >> 24n)
+            );
+        }
+        return res;
+    }
+
+    chacha20Block(): Uint32Array {
+        const workingState = this.state.map(value => UInt32.fromValue(value.toBigint())); // Copy the state
+
+        for (let i = 0; i < 10; i++) {
+            ChaChaState.innerBlock(workingState);
+        }
+
+        const newState = new ChaChaState(
+            new Uint32Array(workingState.slice(0, 8).map(v => Number(v.toBigint()))),
+            new Uint32Array(workingState.slice(8, 11).map(v => Number(v.toBigint()))),
+            Number(workingState[11].toBigint())
+        );
+
+        this.add(newState);
+
+        return this.toLe4Bytes();
+    }
 }

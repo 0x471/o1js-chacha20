@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { UInt32, assert } from 'o1js';
+import { UInt32 } from 'o1js';
 import { ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
@@ -8,30 +8,42 @@ const toHex = (u: UInt32) => u.toBigint().toString(16).padStart(8, '0');
 
 describe('ChaCha', () => {
     it('should calculate quarter round correctly', async () => {
-        let a = UInt32.fromValue(0x11111111n);
-        let b = UInt32.fromValue(0x01020304n);
-        let c = UInt32.fromValue(0x9b8d6f43n);
-        let d = UInt32.fromValue(0x01234567n);
+        // Initialize ChaChaState with arbitrary values
+        const key = new Uint32Array(8).fill(0); // Mock key
+        const nonce = new Uint32Array(3).fill(0); // Mock nonce
+        const counter = 0; // Mock counter
 
-        let [result_a, result_b, result_c, result_d] = ChaChaState.quarterRound(a, b, c, d);
+        const chacha = new ChaChaState(key, nonce, counter);
 
-        let expected_a = UInt32.fromValue(0xea2a92f4n);
-        let expected_b = UInt32.fromValue(0xcb1cf8cen);
-        let expected_c = UInt32.fromValue(0x4581472en);
-        let expected_d = UInt32.fromValue(0x5881c4bbn);
+        // Set specific values to simulate the state before the quarter round
+        chacha.state[0] = UInt32.fromValue(0x11111111n);
+        chacha.state[1] = UInt32.fromValue(0x01020304n);
+        chacha.state[2] = UInt32.fromValue(0x9b8d6f43n);
+        chacha.state[3] = UInt32.fromValue(0x01234567n);
 
-        console.log('Result A:', toHex(result_a));
-        console.log('Expected A:', toHex(expected_a));
-        console.log('Result B:', toHex(result_b));
-        console.log('Expected B:', toHex(expected_b));
-        console.log('Result C:', toHex(result_c));
-        console.log('Expected C:', toHex(expected_c));
-        console.log('Result D:', toHex(result_d));
-        console.log('Expected D:', toHex(expected_d));
+        // Perform the quarter round directly on the state
+        ChaChaState.quarterRound(chacha.state, 0, 1, 2, 3);
 
-        expect(toHex(result_a)).toBe(toHex(expected_a));
-        expect(toHex(result_b)).toBe(toHex(expected_b));
-        expect(toHex(result_c)).toBe(toHex(expected_c));
-        expect(toHex(result_d)).toBe(toHex(expected_d));
+        // Expected values after the quarter round
+        const expectedState = [
+            UInt32.fromValue(0xea2a92f4n), // expected a
+            UInt32.fromValue(0xcb1cf8cen), // expected b
+            UInt32.fromValue(0x4581472en), // expected c
+            UInt32.fromValue(0x5881c4bbn), // expected d
+        ];
+
+        console.log('Result A:', toHex(chacha.state[0]));
+        console.log('Expected A:', toHex(expectedState[0]));
+        console.log('Result B:', toHex(chacha.state[1]));
+        console.log('Expected B:', toHex(expectedState[1]));
+        console.log('Result C:', toHex(chacha.state[2]));
+        console.log('Expected C:', toHex(expectedState[2]));
+        console.log('Result D:', toHex(chacha.state[3]));
+        console.log('Expected D:', toHex(expectedState[3]));
+
+        expect(toHex(chacha.state[0])).toBe(toHex(expectedState[0]));
+        expect(toHex(chacha.state[1])).toBe(toHex(expectedState[1]));
+        expect(toHex(chacha.state[2])).toBe(toHex(expectedState[2]));
+        expect(toHex(chacha.state[3])).toBe(toHex(expectedState[3]));
     });
 });
