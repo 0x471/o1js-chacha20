@@ -7,19 +7,19 @@ import {
 
 export { ChaChaState };
 
-const ChaChaConstants = [0x61707865, 0x3320646e, 0x79622d32, 0x6b206574];
-
 class ChaChaState {
     state: UInt32[];
-
     constructor(public key: Uint32Array, nonce: Uint32Array, counter: number) {
         const stateValues: number[] = [
-            ChaChaConstants[0], ChaChaConstants[1], ChaChaConstants[2], ChaChaConstants[3],
-            ...Array.from(key.slice(0, 8)),
-            counter,
-            ...Array.from(nonce.slice(0, 3))
+            0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, // ChaCha constants
+            key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7],
+            counter, nonce[0], nonce[1], nonce[2],
         ];
-        this.state = stateValues.map(value => UInt32.fromValue(BigInt(value)));
+    
+        // Filter out any undefined values and convert to UInt32 format
+        this.state = stateValues
+            .filter(value => value !== undefined)  // Filter out undefined values
+            .map(value => UInt32.fromValue(BigInt(value)));
     }
 
     static quarterRound(state: UInt32[], aIndex: number, bIndex: number, cIndex: number, dIndex: number) {
@@ -27,7 +27,7 @@ class ChaChaState {
         let b = state[bIndex];
         let c = state[cIndex];
         let d = state[dIndex];
-
+ 
         a = UInt32.fromFields([Field.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn)]);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
         d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 16, 'left')]);
@@ -90,26 +90,26 @@ class ChaChaState {
     
      
 
-    chacha20Block(): UInt32[] {
-        // Convert each value in this.state to UInt32
-        const workingState: UInt32[] = this.state.map(value => UInt32.fromValue(value.toBigint()));
+    // chacha20Block(): UInt32[] {
+    //     // Convert each value in this.state to UInt32
+    //     const workingState: UInt32[] = this.state.map(value => UInt32.fromValue(value.toBigint()));
 
-        // Perform 10 rounds of the inner block function
-        for (let i = 0; i < 10; i++) {
-            ChaChaState.innerBlock(workingState);
-        }
+    //     // Perform 10 rounds of the inner block function
+    //     for (let i = 0; i < 10; i++) {
+    //         ChaChaState.innerBlock(workingState);
+    //     }
 
-        // Create a new ChaChaState instance from the working state
-        const newState = new ChaChaState(
-            new Uint32Array(workingState.slice(0, 8).map(v => Number(v.toBigint()))),
-            new Uint32Array(workingState.slice(8, 11).map(v => Number(v.toBigint()))),
-            Number(workingState[11].toBigint())
-        );
+    //     // Create a new ChaChaState instance from the working state
+    //     const newState = new ChaChaState(
+    //         new Uint32Array(workingState.slice(0, 8).map(v => Number(v.toBigint()))),
+    //         new Uint32Array(workingState.slice(8, 11).map(v => Number(v.toBigint()))),
+    //         Number(workingState[11].toBigint())
+    //     );
 
-        // Add the new state to the current state
-        this.add(newState);
-        return this.state;
-    }
+    //     // Add the new state to the current state
+    //     this.add(newState);
+    //     return this.state;
+    // }
 
 
 }
