@@ -64,7 +64,7 @@ class ChaChaState {
         this.quarterRound(state, 3, 4, 9, 14);
     }
 
-    add(other: ChaChaState): void {
+    add(other: ChaChaState) {
         for (let i = 0; i < 16; i++) {
             this.state[i] = UInt32.fromFields([Field.from((this.state[i].toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)]);
         }

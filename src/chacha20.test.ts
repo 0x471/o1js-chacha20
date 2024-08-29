@@ -98,19 +98,18 @@ describe('ChaCha', () => {
         const nonceArray = octetsToUint32Array(nonce);
         const chachaState = new ChaChaState(keyArray, nonceArray, counter);
     
-        const expectedValues: number[] = [
-            0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, // ChaCha constants
-            0x03020100, 0x07060504, 0x0b0a0908, 0x0f0e0d0c, // Key
-            0x13121110, 0x17161514, 0x1b1a1918, 0x1f1e1d1c, // Key
-            0x00000001,                                    // Block count
-            0x09000000, 0x4a000000, 0x00000000            // Nonce
+        const expectedState: UInt32[] = [
+            UInt32.fromValue(0x61707865n), UInt32.fromValue(0x3320646en), UInt32.fromValue(0x79622d32n), UInt32.fromValue(0x6b206574n), // ChaCha constants
+            UInt32.fromValue(0x03020100n), UInt32.fromValue(0x07060504n), UInt32.fromValue(0x0b0a0908n), UInt32.fromValue(0x0f0e0d0cn), // Key
+            UInt32.fromValue(0x13121110n), UInt32.fromValue(0x17161514n), UInt32.fromValue(0x1b1a1918n), UInt32.fromValue(0x1f1e1d1cn), // Key
+            UInt32.fromValue(0x00000001n),  // Block count
+            UInt32.fromValue(0x09000000n), UInt32.fromValue(0x4a000000n), UInt32.fromValue(0x00000000n) // Nonce
         ];
     
-        const expectedState = expectedValues.map(value => UInt32.fromValue(BigInt(value)));
+    
         for (let i = 0; i < chachaState.state.length; i++) {
             const receivedHex = toHexString(chachaState.state[i]);
             const expectedHex = toHexString(expectedState[i]);
-            console.log(`Received: ${receivedHex}, Expected: ${expectedHex}`);
             expect(receivedHex).toBe(expectedHex);
         }
     });
