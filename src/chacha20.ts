@@ -15,7 +15,7 @@ class ChaChaState {
             key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7],
             counter, nonce[0], nonce[1], nonce[2],
         ];
-    
+
         this.state = stateValues
             .filter(value => value !== undefined)
             .map(value => UInt32.fromValue(BigInt(value)));
@@ -26,7 +26,7 @@ class ChaChaState {
         let b = state[bIndex];
         let c = state[cIndex];
         let d = state[dIndex];
- 
+
         a = UInt32.fromFields([Field.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn)]);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
         d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 16, 'left')]);
@@ -68,26 +68,27 @@ class ChaChaState {
             this.state[i] = UInt32.fromFields([Field.from((this.state[i].toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)]);
         }
     }
-    //    toLe4Bytes(): Uint8Array {
-    //         const length = this.state.length;
-    //         const buffer = new Uint8Array(length * 4);
 
-    //         for (let i = 0; i < length; i++) {
-    //             // Explicitly specify the type of value as number
-    //             const value: number = this.state[i] as number;
+    toLe4Bytes(): UInt32[] {
+        const res: UInt32[] = [];
 
-    //             // Convert each number value to 4 bytes in little-endian order
-    //             buffer[i * 4]     = value & 0xFF;
-    //             buffer[i * 4 + 1] = (value >> 8) & 0xFF;
-    //             buffer[i * 4 + 2] = (value >> 16) & 0xFF;
-    //             buffer[i * 4 + 3] = (value >> 24) & 0xFF;
-    //         }
+        for (let i = 0; i < 16; i++) {
+            const value = this.state[i].toBigint();
 
-    //         return buffer;
-    //     }
-    
-    
-     
+            // Convert to little-endian 4 bytes
+            const byte0 = (value & 0xFFn);
+            const byte1 = (value >> 8n) & 0xFFn;
+            const byte2 = (value >> 16n) & 0xFFn;
+            const byte3 = (value >> 24n) & 0xFFn;
+
+            const leValue = (byte0 << 24n) | (byte1 << 16n) | (byte2 << 8n) | byte3;
+            res.push(UInt32.fromValue(leValue));
+        }
+
+        return res;
+    }
+
+
 
     // chacha20Block(): UInt32[] {
     //     // Convert each value in this.state to UInt32
