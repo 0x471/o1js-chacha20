@@ -41,18 +41,18 @@ describe('ChaCha', () => {
 
         const chacha = new ChaChaState(key, nonce, counter);
 
-        chacha.state[0] = UInt32.fromValue(0x11111111n);
-        chacha.state[1] = UInt32.fromValue(0x01020304n);
-        chacha.state[2] = UInt32.fromValue(0x9b8d6f43n);
-        chacha.state[3] = UInt32.fromValue(0x01234567n);
+        chacha.state[0] = UInt32.from(0x11111111n);
+        chacha.state[1] = UInt32.from(0x01020304n);
+        chacha.state[2] = UInt32.from(0x9b8d6f43n);
+        chacha.state[3] = UInt32.from(0x01234567n);
 
         ChaChaState.quarterRound(chacha.state, 0, 1, 2, 3);
 
         const expectedState = [
-            UInt32.fromValue(0xea2a92f4n), // expected a
-            UInt32.fromValue(0xcb1cf8cen), // expected b
-            UInt32.fromValue(0x4581472en), // expected c
-            UInt32.fromValue(0x5881c4bbn), // expected d
+            UInt32.from(0xea2a92f4n), // expected a
+            UInt32.from(0xcb1cf8cen), // expected b
+            UInt32.from(0x4581472en), // expected c
+            UInt32.from(0x5881c4bbn), // expected d
         ];
 
         expect(toHexString(chacha.state[0])).toBe(toHexString(expectedState[0]));
@@ -65,24 +65,24 @@ describe('ChaCha', () => {
         const state2 = new ChaChaState(new Uint32Array(8).fill(0), new Uint32Array(3).fill(0), 0);
 
 
-        state1.state[0] = UInt32.fromValue(0x11111111n);
-        state1.state[1] = UInt32.fromValue(0x01020304n);
-        state1.state[2] = UInt32.fromValue(0x9b8d6f43n);
-        state1.state[3] = UInt32.fromValue(0x01234567n);
+        state1.state[0] = UInt32.from(0x11111111n);
+        state1.state[1] = UInt32.from(0x01020304n);
+        state1.state[2] = UInt32.from(0x9b8d6f43n);
+        state1.state[3] = UInt32.from(0x01234567n);
 
-        state2.state[0] = UInt32.fromValue(0x00000001n);
-        state2.state[1] = UInt32.fromValue(0x00000002n);
-        state2.state[2] = UInt32.fromValue(0x00000003n);
-        state2.state[3] = UInt32.fromValue(0x00000004n);
+        state2.state[0] = UInt32.from(0x00000001n);
+        state2.state[1] = UInt32.from(0x00000002n);
+        state2.state[2] = UInt32.from(0x00000003n);
+        state2.state[3] = UInt32.from(0x00000004n);
 
         state1.add(state2);
 
         // Expected values after carryless addition (modulo 2^32)
         const expectedState = [
-            UInt32.fromValue((0x11111111n + 0x00000001n) & 0xFFFFFFFFn),
-            UInt32.fromValue((0x01020304n + 0x00000002n) & 0xFFFFFFFFn),
-            UInt32.fromValue((0x9b8d6f43n + 0x00000003n) & 0xFFFFFFFFn),
-            UInt32.fromValue((0x01234567n + 0x00000004n) & 0xFFFFFFFFn),
+            UInt32.from((0x11111111n + 0x00000001n) & 0xFFFFFFFFn),
+            UInt32.from((0x01020304n + 0x00000002n) & 0xFFFFFFFFn),
+            UInt32.from((0x9b8d6f43n + 0x00000003n) & 0xFFFFFFFFn),
+            UInt32.from((0x01234567n + 0x00000004n) & 0xFFFFFFFFn),
         ];
 
         expect(toHexString(state1.state[0])).toBe(toHexString(expectedState[0]));
@@ -100,12 +100,13 @@ describe('ChaCha', () => {
         const chachaState = new ChaChaState(keyArray, nonceArray, counter);
 
         const expectedState: UInt32[] = [
-            UInt32.fromValue(0x61707865n), UInt32.fromValue(0x3320646en), UInt32.fromValue(0x79622d32n), UInt32.fromValue(0x6b206574n), // ChaCha constants
-            UInt32.fromValue(0x03020100n), UInt32.fromValue(0x07060504n), UInt32.fromValue(0x0b0a0908n), UInt32.fromValue(0x0f0e0d0cn), // Key
-            UInt32.fromValue(0x13121110n), UInt32.fromValue(0x17161514n), UInt32.fromValue(0x1b1a1918n), UInt32.fromValue(0x1f1e1d1cn), // Key
-            UInt32.fromValue(0x00000001n),  // Block count
-            UInt32.fromValue(0x09000000n), UInt32.fromValue(0x4a000000n), UInt32.fromValue(0x00000000n) // Nonce
+            UInt32.from(0x61707865n), UInt32.from(0x3320646en), UInt32.from(0x79622d32n), UInt32.from(0x6b206574n), // ChaCha constants
+            UInt32.from(0x03020100n), UInt32.from(0x07060504n), UInt32.from(0x0b0a0908n), UInt32.from(0x0f0e0d0cn), // Key
+            UInt32.from(0x13121110n), UInt32.from(0x17161514n), UInt32.from(0x1b1a1918n), UInt32.from(0x1f1e1d1cn), // Key
+            UInt32.from(0x00000001n),  // Block count
+            UInt32.from(0x09000000n), UInt32.from(0x4a000000n), UInt32.from(0x00000000n)  // Nonce
         ];
+
 
 
         for (let i = 0; i < chachaState.state.length; i++) {
@@ -124,11 +125,12 @@ describe('ChaCha', () => {
         const nonceArray = octetsToUint32Array(nonce);
 
         const expectedState: UInt32[] = [
-            UInt32.fromValue(0xe4e7f110n), UInt32.fromValue(0x15593bd1n), UInt32.fromValue(0x1fdd0f50n), UInt32.fromValue(0xc47120a3n),
-            UInt32.fromValue(0xc7f4d1c7n), UInt32.fromValue(0x0368c033n), UInt32.fromValue(0x9aaa2204n), UInt32.fromValue(0x4e6cd4c3n),
-            UInt32.fromValue(0x466482d2n), UInt32.fromValue(0x09aa9f07n), UInt32.fromValue(0x05d7c214n), UInt32.fromValue(0xa2028bd9n),
-            UInt32.fromValue(0xd19c12b5n), UInt32.fromValue(0xb94e16den), UInt32.fromValue(0xe883d0cbn), UInt32.fromValue(0x4e3c50a2n)
+            UInt32.from(0xe4e7f110n), UInt32.from(0x15593bd1n), UInt32.from(0x1fdd0f50n), UInt32.from(0xc47120a3n),
+            UInt32.from(0xc7f4d1c7n), UInt32.from(0x0368c033n), UInt32.from(0x9aaa2204n), UInt32.from(0x4e6cd4c3n),
+            UInt32.from(0x466482d2n), UInt32.from(0x09aa9f07n), UInt32.from(0x05d7c214n), UInt32.from(0xa2028bd9n),
+            UInt32.from(0xd19c12b5n), UInt32.from(0xb94e16den), UInt32.from(0xe883d0cbn), UInt32.from(0x4e3c50a2n)
         ];
+
 
         let chachaState = chacha20Block(keyArray, nonceArray, counter);
         for (let i = 0; i < chachaState.length; i++) {
@@ -139,23 +141,26 @@ describe('ChaCha', () => {
     })
     it("should encrypt and decrypt correctly", () => {
         let key = "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f";
-        let nonce = "00:00:00:09:00:00:00:4a:00:00:00:00";
+        let nonce = "00:00:00:00:00:00:00:4a:00:00:00:00";
         const counter = 1;
 
         const keyArray = octetsToUint32Array(key);
         const nonceArray = octetsToUint32Array(nonce);
 
-        const plaintext: Uint32Array = new Uint32Array([
-            0x4c616469, 0x65732061, 0x6e642047, 0x656e746c,
-            0x656d656e, 0x206f6620, 0x74686520, 0x636c6173,
-            0x73206f66, 0x20273939, 0x3a204966, 0x20492063,
-            0x6f756c64, 0x206f6666, 0x65722079, 0x6f75206f,
-            0x6e6c7920, 0x6f6e6520, 0x74697020, 0x666f7220,
-            0x74686520, 0x66757475, 0x72652c20, 0x73756e73,
-            0x63726565, 0x6e20776f, 0x756c6420, 0x62652069,
-            0x742e0000
-        ]);
+        const plaintext: UInt32[] = [
+            UInt32.from(0x4c616469), UInt32.from(0x65732061), UInt32.from(0x6e642047), UInt32.from(0x656e746c),
+            UInt32.from(0x656d656e), UInt32.from(0x206f6620), UInt32.from(0x74686520), UInt32.from(0x636c6173),
+            UInt32.from(0x73206f66), UInt32.from(0x20273939), UInt32.from(0x3a204966), UInt32.from(0x20492063),
+            UInt32.from(0x6f756c64), UInt32.from(0x206f6666), UInt32.from(0x65722079), UInt32.from(0x6f75206f),
+            UInt32.from(0x6e6c7920), UInt32.from(0x6f6e6520), UInt32.from(0x74697020), UInt32.from(0x666f7220),
+            UInt32.from(0x74686520), UInt32.from(0x66757475), UInt32.from(0x72652c20), UInt32.from(0x73756e73),
+            UInt32.from(0x63726565), UInt32.from(0x6e20776f), UInt32.from(0x756c6420), UInt32.from(0x62652069),
+            UInt32.from(0x742e0000)
+        ];
         let chachaStateEncrypted = chacha20(keyArray, nonceArray, counter, plaintext);
+        for (let i = 0; i < chachaStateEncrypted.length; i++) {
+            console.log(toHexString(UInt32.from(chachaStateEncrypted[i])))
+        }
         let chachaStateDecrypted = chacha20(keyArray, nonceArray, counter, chachaStateEncrypted);
         for (let i = 0; i < chachaStateDecrypted.length; i++) {
             expect(toHexString(UInt32.from(chachaStateDecrypted[i]))).toBe(toHexString(UInt32.from(plaintext[i])))
