@@ -6,8 +6,6 @@ import {
 
 export { ChaChaState, chacha20Block, chacha20 };
 
-// TODO: number to field elements!
-
 function chacha20(key: Uint32Array, nonce: Uint32Array, counter: number, plaintext: Uint32Array): Uint32Array {
     let res = new Uint32Array(plaintext.length);
     for (let j = 0; j < plaintext.length / 16; j++) {
@@ -59,19 +57,19 @@ class ChaChaState {
         let c = state[cIndex];
         let d = state[dIndex];
 
-        a = UInt32.fromFields([Field.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn)]);
+        a = UInt32.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
         d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 16, 'left')]);
 
-        c = UInt32.fromFields([Field.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn)]);
+        c = UInt32.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn);
         b = UInt32.from(b.toBigint() ^ c.toBigint());
         b = UInt32.fromFields([Gadgets.rotate32(b.toFields()[0], 12, 'left')]);
 
-        a = UInt32.fromFields([Field.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn)]);
+        a = UInt32.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
         d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 8, 'left')]);
 
-        c = UInt32.fromFields([Field.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn)]);
+        c = UInt32.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn);
         b = UInt32.from(b.toBigint() ^ c.toBigint());
         b = UInt32.fromFields([Gadgets.rotate32(b.toFields()[0], 7, 'left')]);
 
