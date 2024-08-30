@@ -100,8 +100,8 @@ describe('ChaCha', () => {
         const chachaState = new ChaChaState(keyArray, nonceArray, counter);
 
         const expectedState: UInt32[] = [
-            UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574n), // ChaCha constants
-            UInt32.from(0x03020100), UInt32.from(0x07060504), UInt32.from(0x0b0a0908), UInt32.from(0x0f0e0d0cn), // Key
+            UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574), // ChaCha constants
+            UInt32.from(0x03020100), UInt32.from(0x07060504), UInt32.from(0x0b0a0908), UInt32.from(0x0f0e0d0c), // Key
             UInt32.from(0x13121110), UInt32.from(0x17161514), UInt32.from(0x1b1a1918), UInt32.from(0x1f1e1d1c), // Key
             UInt32.from(0x00000001),  // Block count
             UInt32.from(0x09000000), UInt32.from(0x4a000000), UInt32.from(0x00000000)  // Nonce
