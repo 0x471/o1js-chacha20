@@ -1,10 +1,10 @@
 import { jest } from '@jest/globals';
 import { UInt32 } from 'o1js';
-import { chacha20Block, ChaChaState } from './chacha20';
+import { chacha20, chacha20Block, ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
 
-export {toHexString}
+export { toHexString }
 function toHexString(value: UInt32): string {
     const numberValue = value.toBigint();
     return numberValue.toString(16).padStart(8, '0');
@@ -130,12 +130,40 @@ describe('ChaCha', () => {
             UInt32.fromValue(0x466482d2n), UInt32.fromValue(0x09aa9f07n), UInt32.fromValue(0x05d7c214n), UInt32.fromValue(0xa2028bd9n),
             UInt32.fromValue(0xd19c12b5n), UInt32.fromValue(0xb94e16den), UInt32.fromValue(0xe883d0cbn), UInt32.fromValue(0x4e3c50a2n)
         ];
-        
+
         let chachaState = chacha20Block(keyArray, nonceArray, counter);
         for (let i = 0; i < chachaState.length; i++) {
             const receivedHex = toHexString(chachaState[i]);
             const expectedHex = toHexString(expectedState[i]);
             expect(receivedHex).toBe(expectedHex);
         }
+    })
+    it("should encrypt and decrypt correctly", () => {
+        let key = "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f";
+        let nonce = "00:00:00:09:00:00:00:4a:00:00:00:00";
+        const counter = 1;
+
+        const keyArray = octetsToUint32Array(key);
+        const nonceArray = octetsToUint32Array(nonce);
+
+        const plaintext: Uint32Array = new Uint32Array([
+            0x4c616469, 0x65732061, 0x6e642047, 0x656e746c,
+            0x656d656e, 0x206f6620, 0x74686520, 0x636c6173,
+            0x73206f66, 0x20273939, 0x3a204966, 0x20492063,
+            0x6f756c64, 0x206f6666, 0x65722079, 0x6f75206f,
+            0x6e6c7920, 0x6f6e6520, 0x74697020, 0x666f7220,
+            0x74686520, 0x66757475, 0x72652c20, 0x73756e73,
+            0x63726565, 0x6e20776f, 0x756c6420, 0x62652069,
+            0x742e0000
+        ]);
+        let chachaStateEncrypted = chacha20(keyArray, nonceArray, counter, plaintext);
+        // for (let x = 0; x < chachaStateEncrypted.length; x++) {
+        //     console.log(toHexString(UInt32.from(chachaStateEncrypted[x])))
+        // }
+        let chachaStateDecrypted = chacha20(keyArray, nonceArray, counter, chachaStateEncrypted);
+        for (let i = 0; i < chachaStateDecrypted.length; i++) {
+            expect(toHexString(UInt32.from(chachaStateDecrypted[i]))).toBe(toHexString(UInt32.from(plaintext[i])))
+        }
+
     })
 });

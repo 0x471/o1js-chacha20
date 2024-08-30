@@ -5,7 +5,28 @@ import {
     UInt8,
 } from 'o1js';
 
-export { ChaChaState, chacha20Block };
+export { ChaChaState, chacha20Block, chacha20 };
+
+// TODO: number to field elements!
+
+function chacha20(key: Uint32Array, nonce: Uint32Array, counter: number, plaintext: Uint32Array): Uint32Array {
+    let res = new Uint32Array(plaintext.length);
+    for (let j = 0; j < plaintext.length / 16; j++) {
+        let keyStream = chacha20Block(key, nonce, counter+j);
+        for (let t = 0; t < 16; t++) {
+            res[16*j+t] = plaintext[16*j+t] ^ Number(keyStream[t].toBigint());
+        }
+    }
+    if(plaintext.length % 16 !== 0) {
+        let j = Math.floor(plaintext.length / 16);
+        let keyStream = chacha20Block(key, nonce, counter+j);
+        for (let t = 0; t < (plaintext.length % 16); t++) {
+            res[16*j+t] = plaintext[16*j+t] ^ Number(keyStream[t].toBigint());
+        }
+    }
+    return res
+}
+
 
 function chacha20Block(key: Uint32Array, nonce: Uint32Array, counter: number): UInt32[] {
     let state = new ChaChaState(key, nonce, counter);
