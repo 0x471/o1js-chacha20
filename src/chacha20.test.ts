@@ -41,18 +41,18 @@ describe('ChaCha', () => {
 
         const chacha = new ChaChaState(key, nonce, counter);
 
-        chacha.state[0] = UInt32.from(0x11111111n);
-        chacha.state[1] = UInt32.from(0x01020304n);
-        chacha.state[2] = UInt32.from(0x9b8d6f43n);
-        chacha.state[3] = UInt32.from(0x01234567n);
+        chacha.state[0] = UInt32.from(0x11111111);
+        chacha.state[1] = UInt32.from(0x01020304);
+        chacha.state[2] = UInt32.from(0x9b8d6f43);
+        chacha.state[3] = UInt32.from(0x01234567);
 
         ChaChaState.quarterRound(chacha.state, 0, 1, 2, 3);
 
         const expectedState = [
-            UInt32.from(0xea2a92f4n), // expected a
-            UInt32.from(0xcb1cf8cen), // expected b
-            UInt32.from(0x4581472en), // expected c
-            UInt32.from(0x5881c4bbn), // expected d
+            UInt32.from(0xea2a92f4), // expected a
+            UInt32.from(0xcb1cf8ce), // expected b
+            UInt32.from(0x4581472e), // expected c
+            UInt32.from(0x5881c4bb), // expected d
         ];
 
         expect(toHexString(chacha.state[0])).toBe(toHexString(expectedState[0]));
@@ -65,15 +65,15 @@ describe('ChaCha', () => {
         const state2 = new ChaChaState(new Uint32Array(8).fill(0), new Uint32Array(3).fill(0), 0);
 
 
-        state1.state[0] = UInt32.from(0x11111111n);
-        state1.state[1] = UInt32.from(0x01020304n);
-        state1.state[2] = UInt32.from(0x9b8d6f43n);
-        state1.state[3] = UInt32.from(0x01234567n);
+        state1.state[0] = UInt32.from(0x11111111);
+        state1.state[1] = UInt32.from(0x01020304);
+        state1.state[2] = UInt32.from(0x9b8d6f43);
+        state1.state[3] = UInt32.from(0x01234567);
 
-        state2.state[0] = UInt32.from(0x00000001n);
-        state2.state[1] = UInt32.from(0x00000002n);
-        state2.state[2] = UInt32.from(0x00000003n);
-        state2.state[3] = UInt32.from(0x00000004n);
+        state2.state[0] = UInt32.from(0x00000001);
+        state2.state[1] = UInt32.from(0x00000002);
+        state2.state[2] = UInt32.from(0x00000003);
+        state2.state[3] = UInt32.from(0x00000004);
 
         state1.add(state2);
 
@@ -100,11 +100,11 @@ describe('ChaCha', () => {
         const chachaState = new ChaChaState(keyArray, nonceArray, counter);
 
         const expectedState: UInt32[] = [
-            UInt32.from(0x61707865n), UInt32.from(0x3320646en), UInt32.from(0x79622d32n), UInt32.from(0x6b206574n), // ChaCha constants
-            UInt32.from(0x03020100n), UInt32.from(0x07060504n), UInt32.from(0x0b0a0908n), UInt32.from(0x0f0e0d0cn), // Key
-            UInt32.from(0x13121110n), UInt32.from(0x17161514n), UInt32.from(0x1b1a1918n), UInt32.from(0x1f1e1d1cn), // Key
-            UInt32.from(0x00000001n),  // Block count
-            UInt32.from(0x09000000n), UInt32.from(0x4a000000n), UInt32.from(0x00000000n)  // Nonce
+            UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574n), // ChaCha constants
+            UInt32.from(0x03020100), UInt32.from(0x07060504), UInt32.from(0x0b0a0908), UInt32.from(0x0f0e0d0cn), // Key
+            UInt32.from(0x13121110), UInt32.from(0x17161514), UInt32.from(0x1b1a1918), UInt32.from(0x1f1e1d1c), // Key
+            UInt32.from(0x00000001),  // Block count
+            UInt32.from(0x09000000), UInt32.from(0x4a000000), UInt32.from(0x00000000)  // Nonce
         ];
 
 
@@ -125,10 +125,10 @@ describe('ChaCha', () => {
         const nonceArray = octetsToUint32Array(nonce);
 
         const expectedState: UInt32[] = [
-            UInt32.from(0xe4e7f110n), UInt32.from(0x15593bd1n), UInt32.from(0x1fdd0f50n), UInt32.from(0xc47120a3n),
-            UInt32.from(0xc7f4d1c7n), UInt32.from(0x0368c033n), UInt32.from(0x9aaa2204n), UInt32.from(0x4e6cd4c3n),
-            UInt32.from(0x466482d2n), UInt32.from(0x09aa9f07n), UInt32.from(0x05d7c214n), UInt32.from(0xa2028bd9n),
-            UInt32.from(0xd19c12b5n), UInt32.from(0xb94e16den), UInt32.from(0xe883d0cbn), UInt32.from(0x4e3c50a2n)
+            UInt32.from(0xe4e7f110), UInt32.from(0x15593bd1), UInt32.from(0x1fdd0f50), UInt32.from(0xc47120a3),
+            UInt32.from(0xc7f4d1c7), UInt32.from(0x0368c033), UInt32.from(0x9aaa2204), UInt32.from(0x4e6cd4c3),
+            UInt32.from(0x466482d2), UInt32.from(0x09aa9f07), UInt32.from(0x05d7c214), UInt32.from(0xa2028bd9),
+            UInt32.from(0xd19c12b5), UInt32.from(0xb94e16de), UInt32.from(0xe883d0cb), UInt32.from(0x4e3c50a2)
         ];
 
 
