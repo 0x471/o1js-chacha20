@@ -2,7 +2,6 @@ import {
     UInt32,
     Gadgets,
     Field,
-    UInt8,
 } from 'o1js';
 
 export { ChaChaState, chacha20Block, chacha20 };
@@ -43,15 +42,15 @@ function chacha20Block(key: Uint32Array, nonce: Uint32Array, counter: number): U
 class ChaChaState {
     state: UInt32[];
     constructor(key: Uint32Array, nonce: Uint32Array, counter: number) {
-        const stateValues: number[] = [
-            0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, // ChaCha constants
-            key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7],
-            counter, nonce[0], nonce[1], nonce[2],
+        const stateValues: UInt32[] = [
+            UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574), // ChaCha constants
+            UInt32.from(key[0]), UInt32.from(key[1]), UInt32.from(key[2]), UInt32.from(key[3]), UInt32.from(key[4]), UInt32.from(key[5]), UInt32.from(key[6]), UInt32.from(key[7]),
+            UInt32.from(counter), UInt32.from(nonce[0]), UInt32.from(nonce[1]), UInt32.from(nonce[2]),
         ];
 
         this.state = stateValues
             .filter(value => value !== undefined)
-            .map(value => UInt32.fromValue(BigInt(value)));
+            .map(value => value);
     }
 
     static quarterRound(state: UInt32[], aIndex: number, bIndex: number, cIndex: number, dIndex: number) {
