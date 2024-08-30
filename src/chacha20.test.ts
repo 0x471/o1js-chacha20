@@ -4,7 +4,6 @@ import { chacha20, chacha20Block, ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
 
-export { toHexString }
 function toHexString(value: UInt32): string {
     const numberValue = value.toBigint();
     return numberValue.toString(16).padStart(8, '0');
@@ -157,9 +156,6 @@ describe('ChaCha', () => {
             0x742e0000
         ]);
         let chachaStateEncrypted = chacha20(keyArray, nonceArray, counter, plaintext);
-        // for (let x = 0; x < chachaStateEncrypted.length; x++) {
-        //     console.log(toHexString(UInt32.from(chachaStateEncrypted[x])))
-        // }
         let chachaStateDecrypted = chacha20(keyArray, nonceArray, counter, chachaStateEncrypted);
         for (let i = 0; i < chachaStateDecrypted.length; i++) {
             expect(toHexString(UInt32.from(chachaStateDecrypted[i]))).toBe(toHexString(UInt32.from(plaintext[i])))
