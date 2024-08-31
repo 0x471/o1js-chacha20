@@ -54,34 +54,6 @@ class ChaChaState {
     }
 
 
-    static chacha20Block(key: UInt32[], nonce: UInt32[], counter: number): UInt32[] {
-        const state = new ChaChaState(key, nonce, counter);
-        const workingState = new ChaChaState(key, nonce, counter);
-
-        for (let i = 0; i < 10; i++) {
-            ChaChaState.innerBlock(workingState.state);
-        }
-
-        workingState.add(state);
-        return workingState.toLe4Bytes();
-    }
-
-
-    static innerBlock(state: UInt32[]) {
-        // Column rounds
-        this.quarterRound(state, 0, 4, 8, 12);
-        this.quarterRound(state, 1, 5, 9, 13);
-        this.quarterRound(state, 2, 6, 10, 14);
-        this.quarterRound(state, 3, 7, 11, 15);
-
-        // Diagonal rounds
-        this.quarterRound(state, 0, 5, 10, 15);
-        this.quarterRound(state, 1, 6, 11, 12);
-        this.quarterRound(state, 2, 7, 8, 13);
-        this.quarterRound(state, 3, 4, 9, 14);
-    }
-
-
     static quarterRound(state: UInt32[], aIndex: number, bIndex: number, cIndex: number, dIndex: number) {
         const rotate = (value: UInt32, bits: number) =>
             UInt32.fromFields([Gadgets.rotate32(value.toFields()[0], bits, 'left')]);
@@ -106,4 +78,31 @@ class ChaChaState {
 
         [state[aIndex], state[bIndex], state[cIndex], state[dIndex]] = [a, b, c, d];
     }
+
+    static innerBlock(state: UInt32[]) {
+        // Column rounds
+        this.quarterRound(state, 0, 4, 8, 12);
+        this.quarterRound(state, 1, 5, 9, 13);
+        this.quarterRound(state, 2, 6, 10, 14);
+        this.quarterRound(state, 3, 7, 11, 15);
+
+        // Diagonal rounds
+        this.quarterRound(state, 0, 5, 10, 15);
+        this.quarterRound(state, 1, 6, 11, 12);
+        this.quarterRound(state, 2, 7, 8, 13);
+        this.quarterRound(state, 3, 4, 9, 14);
+    }
+
+    static chacha20Block(key: UInt32[], nonce: UInt32[], counter: number): UInt32[] {
+        const state = new ChaChaState(key, nonce, counter);
+        const workingState = new ChaChaState(key, nonce, counter);
+
+        for (let i = 0; i < 10; i++) {
+            ChaChaState.innerBlock(workingState.state);
+        }
+
+        workingState.add(state);
+        return workingState.toLe4Bytes();
+    }
+
 }
