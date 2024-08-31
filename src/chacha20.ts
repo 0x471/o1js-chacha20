@@ -6,7 +6,7 @@ import {
 
 export { ChaChaState, chacha20Block, chacha20 };
 
-function chacha20(key: Uint32Array, nonce: Uint32Array, counter: number, plaintext: Uint32Array): Uint32Array {
+function chacha20(key: UInt32[], nonce: UInt32[], counter: number, plaintext: Uint32Array): Uint32Array {
     let res = new Uint32Array(plaintext.length);
     for (let j = 0; j < plaintext.length / 16; j++) {
         let keyStream = chacha20Block(key, nonce, counter+j);
@@ -25,7 +25,7 @@ function chacha20(key: Uint32Array, nonce: Uint32Array, counter: number, plainte
 }
 
 
-function chacha20Block(key: Uint32Array, nonce: Uint32Array, counter: number): UInt32[] {
+function chacha20Block(key: UInt32[], nonce: UInt32[], counter: number): UInt32[] {
     let state = new ChaChaState(key, nonce, counter);
     let workingState = new ChaChaState(key, nonce, counter);
 
@@ -39,11 +39,11 @@ function chacha20Block(key: Uint32Array, nonce: Uint32Array, counter: number): U
 
 class ChaChaState {
     state: UInt32[];
-    constructor(key: Uint32Array, nonce: Uint32Array, counter: number) {
+    constructor(key: UInt32[], nonce: UInt32[], counter: number) {
         const stateValues: UInt32[] = [
             UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574), // ChaCha constants
-            UInt32.from(key[0]), UInt32.from(key[1]), UInt32.from(key[2]), UInt32.from(key[3]), UInt32.from(key[4]), UInt32.from(key[5]), UInt32.from(key[6]), UInt32.from(key[7]),
-            UInt32.from(counter), UInt32.from(nonce[0]), UInt32.from(nonce[1]), UInt32.from(nonce[2]),
+            key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7],
+            UInt32.from(counter), nonce[0], nonce[1], nonce[2],
         ];
 
         this.state = stateValues
