@@ -34,7 +34,7 @@ function chacha20Block(key: Uint32Array, nonce: Uint32Array, counter: number): U
     }
 
     workingState.add(state);
-    return workingState.state;
+    return workingState.toLe4Bytes();;
 }
 
 class ChaChaState {
@@ -77,6 +77,25 @@ class ChaChaState {
         state[bIndex] = b;
         state[cIndex] = c;
         state[dIndex] = d;
+    }
+
+    toLe4Bytes(): UInt32[] {
+        const res: UInt32[] = [];
+
+        for (let i = 0; i < 16; i++) {
+            const value = this.state[i].toBigint();
+
+            // Convert to little-endian 4 bytes
+            const byte0 = (value & 0xFFn);
+            const byte1 = (value >> 8n) & 0xFFn;
+            const byte2 = (value >> 16n) & 0xFFn;
+            const byte3 = (value >> 24n) & 0xFFn;
+
+            const leValue = (byte0 << 24n) | (byte1 << 16n) | (byte2 << 8n) | byte3;
+            res.push(UInt32.fromValue(leValue));
+        }
+
+        return res;
     }
 
     static innerBlock(state: UInt32[]) {

@@ -125,10 +125,10 @@ describe('ChaCha', () => {
         const nonceArray = octetsToUint32Array(nonce);
 
         const expectedState: UInt32[] = [
-            UInt32.from(0xe4e7f110), UInt32.from(0x15593bd1), UInt32.from(0x1fdd0f50), UInt32.from(0xc47120a3),
-            UInt32.from(0xc7f4d1c7), UInt32.from(0x0368c033), UInt32.from(0x9aaa2204), UInt32.from(0x4e6cd4c3),
-            UInt32.from(0x466482d2), UInt32.from(0x09aa9f07), UInt32.from(0x05d7c214), UInt32.from(0xa2028bd9),
-            UInt32.from(0xd19c12b5), UInt32.from(0xb94e16de), UInt32.from(0xe883d0cb), UInt32.from(0x4e3c50a2)
+            UInt32.from(0x10f1e7e4), UInt32.from(0xd13b5915), UInt32.from(0x500fdd1f), UInt32.from(0xa32071c4),
+            UInt32.from(0xc7d1f4c7), UInt32.from(0x33c06803), UInt32.from(0x0422aa9a), UInt32.from(0xc3d46c4e),
+            UInt32.from(0xd2826446), UInt32.from(0x079faa09), UInt32.from(0x14c2d705), UInt32.from(0xd98b02a2),
+            UInt32.from(0xb5129cd1), UInt32.from(0xde164eb9), UInt32.from(0xcbd083e8), UInt32.from(0xa2503c4e)
         ];
 
 
@@ -143,10 +143,10 @@ describe('ChaCha', () => {
         let key = "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f";
         let nonce = "00:00:00:00:00:00:00:4a:00:00:00:00";
         const counter = 1;
-    
+
         const keyArray = octetsToUint32Array(key);
         const nonceArray = octetsToUint32Array(nonce);
-    
+
         const plaintext = new Uint32Array([
             0x4c616469, 0x65732061, 0x6e642047, 0x656e746c,
             0x656d656e, 0x206f6620, 0x74686520, 0x636c6173,
@@ -157,7 +157,7 @@ describe('ChaCha', () => {
             0x63726565, 0x6e20776f, 0x756c6420, 0x62652069,
             0x742e0000
         ]);
-    
+
         let expectedCiphertext = new Uint32Array([
             0x6e2e359a, 0x2568f980, 0x41ba0728, 0xdd0d6981,
             0xe97e7aec, 0x1d4360c2, 0x0a27afcc, 0xfd9fae0b,
@@ -168,24 +168,16 @@ describe('ChaCha', () => {
             0x5af90bbf, 0x74a35be6, 0xb40b8eed, 0xf2785e42,
             0x874d7403
         ]);
-    
+
         let chachaStateEncrypted = chacha20(keyArray, nonceArray, counter, plaintext);
-
-        console.log('Encrypted Ciphertext:', Array.from(chachaStateEncrypted).map((v) => toHexString(UInt32.from(v))));
-        console.log('Expected Ciphertext:', Array.from(expectedCiphertext).map((v) => toHexString(UInt32.from(v))));
-
         for (let i = 0; i < chachaStateEncrypted.length; i++) {
             expect(toHexString(UInt32.from(chachaStateEncrypted[i]))).toBe(toHexString(UInt32.from(expectedCiphertext[i])));
         }
-    
+
         let chachaStateDecrypted = chacha20(keyArray, nonceArray, counter, chachaStateEncrypted);
-
-        console.log('Decrypted Plaintext:', Array.from(chachaStateDecrypted).map((v) => toHexString(UInt32.from(v))));
-        console.log('Expected Plaintext:', Array.from(plaintext).map((v) => toHexString(UInt32.from(v))));
-
         for (let i = 0; i < chachaStateDecrypted.length; i++) {
             expect(toHexString(UInt32.from(chachaStateDecrypted[i]))).toBe(toHexString(UInt32.from(plaintext[i])));
         }
     });
-    
+
 });
