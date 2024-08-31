@@ -1,9 +1,23 @@
-# Mina zkApp: Chacha20 O1js
+# ChaCha20 Stream Cipher - o1js
 
-This template uses TypeScript.
+## What is ChaCha20?
+ChaCha20 is a stream cipher and a descendant of Salsa20. It is widely used and recognized for its security and efficiency.
+
+The inputs to ChaCha20 are:
+- A 256-bit key, represented as a concatenation of eight 32-bit little-endian integers.
+- A 96-bit nonce, represented as a concatenation of three 32-bit little-endian integers.
+- A 32-bit block count parameter, represented as a 32-bit little-endian integer.
+
+The output is a sequence of 64 bytes of pseudorandom data.
+
+More details can be found here: https://www.rfc-editor.org/rfc/rfc7539
+
+## How does ChaCha20 differ from AES?
+- **Simpler Design**: ChaCha20 has a simpler structure compared to AES.
+- **ARX Design**: ChaCha20 uses an ARX (Addition-Rotation-XOR) design, which avoids the use of S-Boxes and reduces cache footprint.
+- **Efficient Key Setup**: ChaCha20 features free key setup, meaning it does not incur significant overhead during key initialization.
 
 ## How to build
-
 ```sh
 npm run build
 ```
@@ -24,3 +38,4 @@ npm run coverage
 ## License
 
 [Apache-2.0](LICENSE)
+    
