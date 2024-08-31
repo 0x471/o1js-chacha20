@@ -143,28 +143,41 @@ describe('ChaCha', () => {
         let key = "00:01:02:03:04:05:06:07:08:09:0a:0b:0c:0d:0e:0f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f";
         let nonce = "00:00:00:00:00:00:00:4a:00:00:00:00";
         const counter = 1;
-
+    
         const keyArray = octetsToUint32Array(key);
         const nonceArray = octetsToUint32Array(nonce);
-
-        const plaintext: UInt32[] = [
-            UInt32.from(0x4c616469), UInt32.from(0x65732061), UInt32.from(0x6e642047), UInt32.from(0x656e746c),
-            UInt32.from(0x656d656e), UInt32.from(0x206f6620), UInt32.from(0x74686520), UInt32.from(0x636c6173),
-            UInt32.from(0x73206f66), UInt32.from(0x20273939), UInt32.from(0x3a204966), UInt32.from(0x20492063),
-            UInt32.from(0x6f756c64), UInt32.from(0x206f6666), UInt32.from(0x65722079), UInt32.from(0x6f75206f),
-            UInt32.from(0x6e6c7920), UInt32.from(0x6f6e6520), UInt32.from(0x74697020), UInt32.from(0x666f7220),
-            UInt32.from(0x74686520), UInt32.from(0x66757475), UInt32.from(0x72652c20), UInt32.from(0x73756e73),
-            UInt32.from(0x63726565), UInt32.from(0x6e20776f), UInt32.from(0x756c6420), UInt32.from(0x62652069),
-            UInt32.from(0x742e0000)
-        ];
+    
+        const plaintext = new Uint32Array([
+            0x4c616469, 0x65732061, 0x6e642047, 0x656e746c,
+            0x656d656e, 0x206f6620, 0x74686520, 0x636c6173,
+            0x73206f66, 0x20273939, 0x3a204966, 0x20492063,
+            0x6f756c64, 0x206f6666, 0x65722079, 0x6f75206f,
+            0x6e6c7920, 0x6f6e6520, 0x74697020, 0x666f7220,
+            0x74686520, 0x66757475, 0x72652c20, 0x73756e73,
+            0x63726565, 0x6e20776f, 0x756c6420, 0x62652069,
+            0x742e0000
+        ]);
+    
+        let expectedCiphertext = new Uint32Array([
+            0x6e2e359a, 0x2568f980, 0x41ba0728, 0xdd0d6981,
+            0xe97e7aec, 0x1d4360c2, 0x0a27afcc, 0xfd9fae0b,
+            0xf91b65c5, 0x524733ab, 0x8f593dab, 0xcd62b357,
+            0x1639d624, 0xe65152ab, 0x8f530c35, 0x9f0861d8,
+            0x07ca0dbf, 0x500d6a61, 0x56a38e08, 0x8a22b65e,
+            0x52bc514d, 0x16ccf806, 0x818ce91a, 0xb7793736,
+            0x5af90bbf, 0x74a35be6, 0xb40b8eed, 0xf2785e42,
+            0x874d7403
+        ]);
+    
         let chachaStateEncrypted = chacha20(keyArray, nonceArray, counter, plaintext);
         for (let i = 0; i < chachaStateEncrypted.length; i++) {
-            console.log(toHexString(UInt32.from(chachaStateEncrypted[i])))
+            expect(toHexString(UInt32.from(chachaStateEncrypted[i]))).toBe(toHexString(UInt32.from(expectedCiphertext[i])));
         }
+    
         let chachaStateDecrypted = chacha20(keyArray, nonceArray, counter, chachaStateEncrypted);
         for (let i = 0; i < chachaStateDecrypted.length; i++) {
-            expect(toHexString(UInt32.from(chachaStateDecrypted[i]))).toBe(toHexString(UInt32.from(plaintext[i])))
+            expect(toHexString(UInt32.from(chachaStateDecrypted[i]))).toBe(toHexString(UInt32.from(plaintext[i])));
         }
-
-    })
+    });
+    
 });
