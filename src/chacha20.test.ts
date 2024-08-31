@@ -170,11 +170,19 @@ describe('ChaCha', () => {
         ]);
     
         let chachaStateEncrypted = chacha20(keyArray, nonceArray, counter, plaintext);
+
+        console.log('Encrypted Ciphertext:', Array.from(chachaStateEncrypted).map((v) => toHexString(UInt32.from(v))));
+        console.log('Expected Ciphertext:', Array.from(expectedCiphertext).map((v) => toHexString(UInt32.from(v))));
+
         for (let i = 0; i < chachaStateEncrypted.length; i++) {
             expect(toHexString(UInt32.from(chachaStateEncrypted[i]))).toBe(toHexString(UInt32.from(expectedCiphertext[i])));
         }
     
         let chachaStateDecrypted = chacha20(keyArray, nonceArray, counter, chachaStateEncrypted);
+
+        console.log('Decrypted Plaintext:', Array.from(chachaStateDecrypted).map((v) => toHexString(UInt32.from(v))));
+        console.log('Expected Plaintext:', Array.from(plaintext).map((v) => toHexString(UInt32.from(v))));
+
         for (let i = 0; i < chachaStateDecrypted.length; i++) {
             expect(toHexString(UInt32.from(chachaStateDecrypted[i]))).toBe(toHexString(UInt32.from(plaintext[i])));
         }
