@@ -1,104 +1,87 @@
-import {
-    UInt32,
-    Gadgets,
-    Field,
-} from 'o1js';
+import { UInt32, Gadgets, Field } from 'o1js';
 
 export { ChaChaState, chacha20Block, chacha20 };
 
 function chacha20(key: UInt32[], nonce: UInt32[], counter: number, plaintext: UInt32[]): UInt32[] {
-    let res: UInt32[] = Array(plaintext.length).fill(new UInt32(0));
+    const res: UInt32[] = Array(plaintext.length).fill(UInt32.from(0));
 
-    for (let j = 0; j < Math.floor(plaintext.length / 16); j++) {
-        let keyStream = chacha20Block(key, nonce, counter + j);
-        for (let t = 0; t < 16; t++) {
-            res[16 * j + t] = UInt32.from(plaintext[16 * j + t].toBigint() ^ keyStream[t].toBigint());
+    function processBlock(offset: number, length: number) {
+        const keyStream = chacha20Block(key, nonce, counter + offset);
+        for (let t = 0; t < length; t++) {
+            res[offset * 16 + t] = UInt32.from(plaintext[offset * 16 + t].toBigint() ^ keyStream[t].toBigint());
         }
     }
 
-    if (plaintext.length % 16 !== 0) {
-        let j = Math.floor(plaintext.length / 16);
-        let keyStream = chacha20Block(key, nonce, counter + j);
-        for (let t = 0; t < (plaintext.length % 16); t++) {
-            res[16 * j + t] = UInt32.from(plaintext[16 * j + t].toBigint() ^ keyStream[t].toBigint());
-        }
+    const numFullBlocks = Math.floor(plaintext.length / 16);
+    for (let j = 0; j < numFullBlocks; j++) {
+        processBlock(j, 16);
+    }
+
+    const remaining = plaintext.length % 16;
+    if (remaining > 0) {
+        processBlock(numFullBlocks, remaining);
     }
 
     return res;
 }
 
-
 function chacha20Block(key: UInt32[], nonce: UInt32[], counter: number): UInt32[] {
-    let state = new ChaChaState(key, nonce, counter);
-    let workingState = new ChaChaState(key, nonce, counter);
+    const state = new ChaChaState(key, nonce, counter);
+    const workingState = new ChaChaState(key, nonce, counter);
 
     for (let i = 0; i < 10; i++) {
         ChaChaState.innerBlock(workingState.state);
     }
 
     workingState.add(state);
-    return workingState.toLe4Bytes();;
+    return workingState.toLe4Bytes();
 }
 
 class ChaChaState {
     state: UInt32[];
-    constructor(key: UInt32[], nonce: UInt32[], counter: number) {
-        const stateValues: UInt32[] = [
-            UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574), // ChaCha constants
-            key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7],
-            UInt32.from(counter), nonce[0], nonce[1], nonce[2],
-        ];
 
-        this.state = stateValues
-            .filter(value => value !== undefined)
-            .map(value => value);
+    constructor(key: UInt32[], nonce: UInt32[], counter: number) {
+        this.state = [
+            UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574), // ChaCha constants
+            ...key,
+            UInt32.from(counter),
+            ...nonce,
+        ];
     }
 
     static quarterRound(state: UInt32[], aIndex: number, bIndex: number, cIndex: number, dIndex: number) {
-        let a = state[aIndex];
-        let b = state[bIndex];
-        let c = state[cIndex];
-        let d = state[dIndex];
+        const rotate = (value: UInt32, bits: number) =>
+            UInt32.fromFields([Gadgets.rotate32(value.toFields()[0], bits, 'left')]);
+
+        let [a, b, c, d] = [state[aIndex], state[bIndex], state[cIndex], state[dIndex]];
 
         a = UInt32.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
-        d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 16, 'left')]);
+        d = rotate(d, 16);
 
         c = UInt32.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn);
         b = UInt32.from(b.toBigint() ^ c.toBigint());
-        b = UInt32.fromFields([Gadgets.rotate32(b.toFields()[0], 12, 'left')]);
+        b = rotate(b, 12);
 
         a = UInt32.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn);
         d = UInt32.from(d.toBigint() ^ a.toBigint());
-        d = UInt32.fromFields([Gadgets.rotate32(d.toFields()[0], 8, 'left')]);
+        d = rotate(d, 8);
 
         c = UInt32.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn);
         b = UInt32.from(b.toBigint() ^ c.toBigint());
-        b = UInt32.fromFields([Gadgets.rotate32(b.toFields()[0], 7, 'left')]);
+        b = rotate(b, 7);
 
-        state[aIndex] = a;
-        state[bIndex] = b;
-        state[cIndex] = c;
-        state[dIndex] = d;
+        [state[aIndex], state[bIndex], state[cIndex], state[dIndex]] = [a, b, c, d];
     }
 
     toLe4Bytes(): UInt32[] {
-        const res: UInt32[] = [];
-
-        for (let i = 0; i < 16; i++) {
-            const value = this.state[i].toBigint();
-
-            // Convert to little-endian 4 bytes
-            const byte0 = (value & 0xFFn);
-            const byte1 = (value >> 8n) & 0xFFn;
-            const byte2 = (value >> 16n) & 0xFFn;
-            const byte3 = (value >> 24n) & 0xFFn;
-
-            const leValue = (byte0 << 24n) | (byte1 << 16n) | (byte2 << 8n) | byte3;
-            res.push(UInt32.fromValue(leValue));
-        }
-
-        return res;
+        return this.state.map(value => {
+            const leValue = ((value.toBigint() & 0xFFn) << 24n) |
+                            (((value.toBigint() >> 8n) & 0xFFn) << 16n) |
+                            (((value.toBigint() >> 16n) & 0xFFn) << 8n) |
+                            ((value.toBigint() >> 24n) & 0xFFn);
+            return UInt32.fromValue(leValue);
+        });
     }
 
     static innerBlock(state: UInt32[]) {
@@ -116,8 +99,8 @@ class ChaChaState {
     }
 
     add(other: ChaChaState) {
-        for (let i = 0; i < 16; i++) {
-            this.state[i] = UInt32.fromFields([Field.from((this.state[i].toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)]);
-        }
+        this.state = this.state.map((value, i) =>
+            UInt32.fromFields([Field.from((value.toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)])
+        );
     }
 }
