@@ -1,12 +1,12 @@
 import { UInt32, Gadgets, Field } from 'o1js';
 
-export { ChaChaState, chacha20Block, chacha20 };
+export { ChaChaState, chacha20 };
 
 function chacha20(key: UInt32[], nonce: UInt32[], counter: number, plaintext: UInt32[]): UInt32[] {
     const res: UInt32[] = Array(plaintext.length).fill(UInt32.from(0));
 
     function processBlock(offset: number, length: number) {
-        const keyStream = chacha20Block(key, nonce, counter + offset);
+        const keyStream = ChaChaState.chacha20Block(key, nonce, counter + offset);
         for (let t = 0; t < length; t++) {
             res[offset * 16 + t] = UInt32.from(plaintext[offset * 16 + t].toBigint() ^ keyStream[t].toBigint());
         }
@@ -25,18 +25,6 @@ function chacha20(key: UInt32[], nonce: UInt32[], counter: number, plaintext: UI
     return res;
 }
 
-function chacha20Block(key: UInt32[], nonce: UInt32[], counter: number): UInt32[] {
-    const state = new ChaChaState(key, nonce, counter);
-    const workingState = new ChaChaState(key, nonce, counter);
-
-    for (let i = 0; i < 10; i++) {
-        ChaChaState.innerBlock(workingState.state);
-    }
-
-    workingState.add(state);
-    return workingState.toLe4Bytes();
-}
-
 class ChaChaState {
     state: UInt32[];
 
@@ -48,6 +36,51 @@ class ChaChaState {
             ...nonce,
         ];
     }
+
+    add(other: ChaChaState) {
+        this.state = this.state.map((value, i) =>
+            UInt32.fromFields([Field.from((value.toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)])
+        );
+    }
+
+    toLe4Bytes(): UInt32[] {
+        return this.state.map(value => {
+            const leValue = ((value.toBigint() & 0xFFn) << 24n) |
+                (((value.toBigint() >> 8n) & 0xFFn) << 16n) |
+                (((value.toBigint() >> 16n) & 0xFFn) << 8n) |
+                ((value.toBigint() >> 24n) & 0xFFn);
+            return UInt32.fromValue(leValue);
+        });
+    }
+
+
+    static chacha20Block(key: UInt32[], nonce: UInt32[], counter: number): UInt32[] {
+        const state = new ChaChaState(key, nonce, counter);
+        const workingState = new ChaChaState(key, nonce, counter);
+
+        for (let i = 0; i < 10; i++) {
+            ChaChaState.innerBlock(workingState.state);
+        }
+
+        workingState.add(state);
+        return workingState.toLe4Bytes();
+    }
+
+
+    static innerBlock(state: UInt32[]) {
+        // Column rounds
+        this.quarterRound(state, 0, 4, 8, 12);
+        this.quarterRound(state, 1, 5, 9, 13);
+        this.quarterRound(state, 2, 6, 10, 14);
+        this.quarterRound(state, 3, 7, 11, 15);
+
+        // Diagonal rounds
+        this.quarterRound(state, 0, 5, 10, 15);
+        this.quarterRound(state, 1, 6, 11, 12);
+        this.quarterRound(state, 2, 7, 8, 13);
+        this.quarterRound(state, 3, 4, 9, 14);
+    }
+
 
     static quarterRound(state: UInt32[], aIndex: number, bIndex: number, cIndex: number, dIndex: number) {
         const rotate = (value: UInt32, bits: number) =>
@@ -72,35 +105,5 @@ class ChaChaState {
         b = rotate(b, 7);
 
         [state[aIndex], state[bIndex], state[cIndex], state[dIndex]] = [a, b, c, d];
-    }
-
-    toLe4Bytes(): UInt32[] {
-        return this.state.map(value => {
-            const leValue = ((value.toBigint() & 0xFFn) << 24n) |
-                            (((value.toBigint() >> 8n) & 0xFFn) << 16n) |
-                            (((value.toBigint() >> 16n) & 0xFFn) << 8n) |
-                            ((value.toBigint() >> 24n) & 0xFFn);
-            return UInt32.fromValue(leValue);
-        });
-    }
-
-    static innerBlock(state: UInt32[]) {
-        // Column rounds
-        this.quarterRound(state, 0, 4, 8, 12);
-        this.quarterRound(state, 1, 5, 9, 13);
-        this.quarterRound(state, 2, 6, 10, 14);
-        this.quarterRound(state, 3, 7, 11, 15);
-
-        // Diagonal rounds
-        this.quarterRound(state, 0, 5, 10, 15);
-        this.quarterRound(state, 1, 6, 11, 12);
-        this.quarterRound(state, 2, 7, 8, 13);
-        this.quarterRound(state, 3, 4, 9, 14);
-    }
-
-    add(other: ChaChaState) {
-        this.state = this.state.map((value, i) =>
-            UInt32.fromFields([Field.from((value.toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)])
-        );
     }
 }

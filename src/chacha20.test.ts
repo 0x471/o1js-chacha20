@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { UInt32 } from 'o1js';
-import { chacha20, chacha20Block, ChaChaState } from './chacha20';
+import { chacha20, ChaChaState } from './chacha20';
 
 jest.useFakeTimers();
 
@@ -133,7 +133,7 @@ describe('ChaCha', () => {
             UInt32.from(0xb5129cd1), UInt32.from(0xde164eb9), UInt32.from(0xcbd083e8), UInt32.from(0xa2503c4e)
         ];
 
-        let chachaState = chacha20Block(key, nonce, counter);
+        let chachaState = ChaChaState.chacha20Block(key, nonce, counter);
         for (let i = 0; i < chachaState.length; i++) {
             const receivedHex = toHex(chachaState[i]);
             const expectedHex = toHex(expectedState[i]);
