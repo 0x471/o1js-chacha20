@@ -13,7 +13,7 @@ describe('ChaCha', () => {
     it('should calculate quarter round correctly', async () => {
         const key: UInt32[] = Array(8).fill(new UInt32(0));
         const nonce: UInt32[] = Array(3).fill(new UInt32(0));
-        const counter = 0;
+        const counter = UInt32.from(0);
 
         const chacha = new ChaChaState(key, nonce, counter);
 
@@ -40,9 +40,10 @@ describe('ChaCha', () => {
     it('should add two ChaChaState instances correctly', async () => {
         const zeroKey: UInt32[] = Array(8).fill(new UInt32(0));
         const zeroNonce: UInt32[] = Array(3).fill(new UInt32(0));
+        const zeroCounter = UInt32.from(0)
 
-        const state1 = new ChaChaState(zeroKey, zeroNonce, 0);
-        const state2 = new ChaChaState(zeroKey, zeroNonce, 0);
+        const state1 = new ChaChaState(zeroKey, zeroNonce, zeroCounter);
+        const state2 = new ChaChaState(zeroKey, zeroNonce, zeroCounter);
 
         state1.state[0] = UInt32.from(0x11111111);
         state1.state[1] = UInt32.from(0x01020304);
@@ -88,7 +89,7 @@ describe('ChaCha', () => {
             UInt32.from(0x00000000)
         ];
 
-        const counter = 1;
+        const counter = UInt32.from(1);
         const chachaState = new ChaChaState(key, nonce, counter);
 
         const expectedState: UInt32[] = [
@@ -124,7 +125,7 @@ describe('ChaCha', () => {
             UInt32.from(0x00000000)
         ];
 
-        const counter = 1;
+        const counter = UInt32.from(1);
 
         const expectedState: UInt32[] = [
             UInt32.from(0x10f1e7e4), UInt32.from(0xd13b5915), UInt32.from(0x500fdd1f), UInt32.from(0xa32071c4),
@@ -158,7 +159,7 @@ describe('ChaCha', () => {
             UInt32.from(0x00000000)
         ];
 
-        const counter = 1;
+        const counter = UInt32.from(1);
 
         const plaintext: UInt32[] = [
             UInt32.from(0x4c616469), UInt32.from(0x65732061), UInt32.from(0x6e642047), UInt32.from(0x656e746c),

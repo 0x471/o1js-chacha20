@@ -7,38 +7,48 @@ export { ChaChaState, chacha20 };
  * 
  * @param {UInt32[]} key - The key used for encryption (256-bit).
  * @param {UInt32[]} nonce - The nonce used for encryption (96-bit).
- * @param {number} counter - The initial block counter.
+ * @param {UInt32} counter - The initial block counter.
  * @param {UInt32[]} plaintext - The plaintext to be encrypted or decrypted.
  * @returns {UInt32[]} - The resulting ciphertext or decrypted text as an array of UInt32.
  */
-function chacha20(key: UInt32[], nonce: UInt32[], counter: number, plaintext: UInt32[]): UInt32[] {
+function chacha20(key: UInt32[], nonce: UInt32[], counter: UInt32, plaintext: UInt32[]): UInt32[] {
     // Initialize the result array with the same length as the plaintext, filled with zeros.
     const res: UInt32[] = Array(plaintext.length).fill(UInt32.from(0));
 
     /**
      * Processes a block of 16 UInt32 words, encrypting or decrypting it using the ChaCha20 block function.
      * 
-     * @param {number} offset - The block offset in the plaintext.
-     * @param {number} length - The number of words to process (should be 16 for full blocks).
+     * @param {UInt32} offset - The block offset in the plaintext, representing which block of 16 words to process.
+     * @param {UInt32} length - The number of words to process in this block (typically 16, but could be less for the last block).
      */
-    function processBlock(offset: number, length: number) {
-        const keyStream = ChaChaState.chacha20Block(key, nonce, counter + offset);
-        for (let t = 0; t < length; t++) {
+    function processBlock(offset: UInt32, length: UInt32) {
+        // Generate the keystream block using the ChaCha20 block function.
+        const keyStream = ChaChaState.chacha20Block(key, nonce, counter.add(offset));
+
+        // Precompute the base index for this block in the plaintext array.
+        const baseIndex = Number(offset.toBigint() * 16n);
+
+        // Process each word in the block.
+        for (let t = 0; t < length.toBigint(); t++) {
+            const index = baseIndex + Number(t);  // Calculate the index in the plaintext array.
+
             // XOR the plaintext with the keystream to produce the ciphertext.
-            res[offset * 16 + t] = UInt32.from(plaintext[offset * 16 + t].toBigint() ^ keyStream[t].toBigint());
+            res[index] = plaintext[index].xor(keyStream[Number(t)]);
         }
     }
 
     // Determine the number of full 16-word blocks in the plaintext.
     const numFullBlocks = Math.floor(plaintext.length / 16);
+
+    // Process each full block of 16 words.
     for (let j = 0; j < numFullBlocks; j++) {
-        processBlock(j, 16);
+        processBlock(UInt32.from(j), UInt32.from(16));
     }
 
     // Process any remaining words in the plaintext that do not fill a full block.
     const remaining = plaintext.length % 16;
     if (remaining > 0) {
-        processBlock(numFullBlocks, remaining);
+        processBlock(UInt32.from(numFullBlocks), UInt32.from(remaining));
     }
 
     return res;
@@ -61,14 +71,14 @@ class ChaChaState {
      * 
      * @param {UInt32[]} key - The key used in encryption.
      * @param {UInt32[]} nonce - The nonce value.
-     * @param {number} counter - The block counter.
+     * @param {UInt32} counter - The block counter.
      */
-    constructor(key: UInt32[], nonce: UInt32[], counter: number) {
+    constructor(key: UInt32[], nonce: UInt32[], counter: UInt32) {
         // Initialize the state array with ChaCha constants, key, counter, and nonce.
         this.state = [
             UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574), // ChaCha constants
             ...key,
-            UInt32.from(counter),
+            counter,
             ...nonce,
         ];
     }
@@ -164,10 +174,10 @@ class ChaChaState {
      * 
      * @param {UInt32[]} key - The encryption key (256-bit).
      * @param {UInt32[]} nonce - The nonce (96-bit).
-     * @param {number} counter - The block counter.
+     * @param {UInt32} counter - The block counter.
      * @returns {UInt32[]} - The resulting keystream block as an array of UInt32.
      */
-    static chacha20Block(key: UInt32[], nonce: UInt32[], counter: number): UInt32[] {
+    static chacha20Block(key: UInt32[], nonce: UInt32[], counter: UInt32): UInt32[] {
         // Initialize the state and a working copy of the state.
         const state = new ChaChaState(key, nonce, counter);
         const workingState = new ChaChaState(key, nonce, counter);
