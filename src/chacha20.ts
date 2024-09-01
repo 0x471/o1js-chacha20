@@ -12,6 +12,15 @@ export { ChaChaState, chacha20 };
  * @returns {UInt32[]} - The resulting ciphertext or decrypted text as an array of UInt32.
  */
 function chacha20(key: UInt32[], nonce: UInt32[], counter: UInt32, plaintext: UInt32[]): UInt32[] {
+    if (key.length !== 8) {
+        throw new Error("Invalid key length: expected 256-bit key (8 UInt32 elements).");
+    }
+    if (nonce.length !== 3) {
+        throw new Error("Invalid nonce length: expected 96-bit nonce (3 UInt32 elements).");
+    }
+    if (plaintext.length === 0) {
+        throw new Error("Plaintext cannot be empty.");
+    }
     // Initialize the result array with the same length as the plaintext, filled with zeros.
     const res: UInt32[] = Array(plaintext.length).fill(UInt32.from(0));
 
@@ -31,7 +40,9 @@ function chacha20(key: UInt32[], nonce: UInt32[], counter: UInt32, plaintext: UI
         // Process each word in the block.
         for (let t = 0; t < length.toBigint(); t++) {
             const index = baseIndex + Number(t);  // Calculate the index in the plaintext array.
-
+            if (index >= plaintext.length) {
+                throw new Error("Index out of bounds during block processing.");
+            }
             // XOR the plaintext with the keystream to produce the ciphertext.
             res[index] = plaintext[index].xor(keyStream[Number(t)]);
         }
@@ -74,6 +85,13 @@ class ChaChaState {
      * @param {UInt32} counter - The block counter.
      */
     constructor(key: UInt32[], nonce: UInt32[], counter: UInt32) {
+        if (key.length !== 8) {
+            throw new Error("Invalid key length: expected 256-bit key (8 UInt32 elements).");
+        }
+        if (nonce.length !== 3) {
+            throw new Error("Invalid nonce length: expected 96-bit nonce (3 UInt32 elements).");
+        }
+
         // Initialize the state array with ChaCha constants, key, counter, and nonce.
         this.state = [
             UInt32.from(0x61707865), UInt32.from(0x3320646e), UInt32.from(0x79622d32), UInt32.from(0x6b206574), // ChaCha constants
@@ -89,6 +107,9 @@ class ChaChaState {
      * @param {ChaChaState} other - The ChaChaState to be added.
      */
     add(other: ChaChaState) {
+        if (other.state.length !== 16) {
+            throw new Error("Invalid ChaCha state length: expected 16 UInt32 elements.");
+        }
         // Perform element-wise carryless addition of the state arrays.
         this.state = this.state.map((value, i) =>
             UInt32.fromFields([Field.from((value.toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)])
@@ -120,6 +141,9 @@ class ChaChaState {
      * @param {number} dIndex - The index of the fourth word in the state array.
      */
     static quarterRound(state: UInt32[], aIndex: number, bIndex: number, cIndex: number, dIndex: number) {
+        if (state.length !== 16) {
+            throw new Error("Invalid ChaCha state length: expected 16 UInt32 elements.");
+        }
         // Rotate function used in the quarter-round operation.
         const rotate = (value: UInt32, bits: number) =>
             UInt32.fromFields([Gadgets.rotate32(value.toFields()[0], bits, 'left')]);
@@ -156,6 +180,9 @@ class ChaChaState {
      * @param {UInt32[]} state - The state array to be processed.
      */
     static innerBlock(state: UInt32[]) {
+        if (state.length !== 16) {
+            throw new Error("Invalid ChaCha state length: expected 16 UInt32 elements.");
+        }
         // Perform column rounds.
         this.quarterRound(state, 0, 4, 8, 12);
         this.quarterRound(state, 1, 5, 9, 13);
@@ -178,6 +205,13 @@ class ChaChaState {
      * @returns {UInt32[]} - The resulting keystream block as an array of UInt32.
      */
     static chacha20Block(key: UInt32[], nonce: UInt32[], counter: UInt32): UInt32[] {
+        if (key.length !== 8) {
+            throw new Error("Invalid key length: expected 256-bit key (8 UInt32 elements).");
+        }
+        if (nonce.length !== 3) {
+            throw new Error("Invalid nonce length: expected 96-bit nonce (3 UInt32 elements).");
+        }
+
         // Initialize the state and a working copy of the state.
         const state = new ChaChaState(key, nonce, counter);
         const workingState = new ChaChaState(key, nonce, counter);

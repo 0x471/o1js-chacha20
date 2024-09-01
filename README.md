@@ -17,6 +17,8 @@ More details can be found here: https://www.rfc-editor.org/rfc/rfc7539
 - **ARX Design**: ChaCha20 uses an ARX (Addition-Rotation-XOR) design, which avoids the use of S-Boxes and reduces cache footprint.
 - **Efficient Key Setup**: ChaCha20 features free key setup, meaning it does not incur significant overhead during key initialization.
 
+Here is a detailed comparison of symmetric encryption methods: https://soatok.blog/2020/07/12/comparison-of-symmetric-encryption-methods/
+
 ## How to build
 ```sh
 npm run build
