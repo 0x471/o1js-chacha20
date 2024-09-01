@@ -19,6 +19,9 @@ More details can be found here: https://www.rfc-editor.org/rfc/rfc7539
 
 Here is a detailed comparison of symmetric encryption methods: https://soatok.blog/2020/07/12/comparison-of-symmetric-encryption-methods/
 
+## ToDo
+- Add test coverage for error handling
+
 ## How to build
 ```sh
 npm run build
