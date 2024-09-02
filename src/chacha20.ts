@@ -112,7 +112,7 @@ class ChaChaState {
         }
         // Perform element-wise carryless addition of the state arrays.
         this.state = this.state.map((value, i) =>
-            UInt32.fromFields([Field.from((value.toBigint() + other.state[i].toBigint()) & 0xFFFFFFFFn)])
+            value.addMod32(other.state[i])
         );
     }
 
