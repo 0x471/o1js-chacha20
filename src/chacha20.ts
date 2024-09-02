@@ -151,23 +151,23 @@ class ChaChaState {
         let [a, b, c, d] = [state[aIndex], state[bIndex], state[cIndex], state[dIndex]];
 
         // Step 1: a += b; d ^= a; d <<<= 16;
-        a = UInt32.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn);
-        d = UInt32.from(d.toBigint() ^ a.toBigint());
+        a = a.addMod32(b);
+        d = d.xor(a);
         d = rotate(d, 16);
 
         // Step 2: c += d; b ^= c; b <<<= 12;
-        c = UInt32.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn);
-        b = UInt32.from(b.toBigint() ^ c.toBigint());
+        c = c.addMod32(d);
+        b = b.xor(c);
         b = rotate(b, 12);
 
         // Step 3: a += b; d ^= a; d <<<= 8;
-        a = UInt32.from((a.toBigint() + b.toBigint()) & 0xFFFFFFFFn);
-        d = UInt32.from(d.toBigint() ^ a.toBigint());
+        a = a.addMod32(b);
+        d = d.xor(a);
         d = rotate(d, 8);
 
         // Step 4: c += d; b ^= c; b <<<= 7;
-        c = UInt32.from((c.toBigint() + d.toBigint()) & 0xFFFFFFFFn);
-        b = UInt32.from(b.toBigint() ^ c.toBigint());
+        c = c.addMod32(d);
+        b = b.xor(c);
         b = rotate(b, 7);
 
         // Update the state with the results of the quarter-round.
