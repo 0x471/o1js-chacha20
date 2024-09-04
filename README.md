@@ -12,6 +12,8 @@ The output is a sequence of 64 bytes of pseudorandom data.
 
 More details can be found here: https://www.rfc-editor.org/rfc/rfc7539
 
+**Funfact:**  BLAKE(2), relies on a core algorithm borrowed from the ChaCha stream cipher :)
+
 ## How does ChaCha20 differ from AES?
 - **Simpler Design**: ChaCha20 has a simpler structure compared to AES.
 - **ARX Design**: ChaCha20 uses an ARX (Addition-Rotation-XOR) design, which avoids the use of S-Boxes and reduces cache footprint.
