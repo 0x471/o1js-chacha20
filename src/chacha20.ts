@@ -146,7 +146,7 @@ class ChaChaState {
         }
         // Rotate function used in the quarter-round operation.
         const rotate = (value: UInt32, bits: number) =>
-            UInt32.fromFields([Gadgets.rotate32(value.toFields()[0], bits, 'left')]);
+            UInt32.Unsafe.fromField(Gadgets.rotate32(value.toFields()[0], bits, 'left'));
 
         let [a, b, c, d] = [state[aIndex], state[bIndex], state[cIndex], state[dIndex]];
 
