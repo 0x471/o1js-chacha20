@@ -1,4 +1,4 @@
-import { UInt32, Gadgets, Field } from 'o1js';
+import { UInt32, Gadgets, Field, UInt8, Provable } from 'o1js'
 
 export { ChaChaState, chacha20 };
 
@@ -117,19 +117,36 @@ class ChaChaState {
     }
 
     /**
-     * Converts the state array to little-endian byte order and returns it as an array of UInt32.
-     * 
-     * @returns {UInt32[]} - The state array in little-endian format.
-     */
-    toLe4Bytes(): UInt32[] {
-        return this.state.map(value => {
-            const leValue = ((value.toBigint() & 0xFFn) << 24n) |
-                (((value.toBigint() >> 8n) & 0xFFn) << 16n) |
-                (((value.toBigint() >> 16n) & 0xFFn) << 8n) |
-                ((value.toBigint() >> 24n) & 0xFFn);
-            return UInt32.fromValue(leValue);
-        });
+    * Convert an array of UInt8 to a Field element. Expects little endian representation.
+    */
+    static bytesToWord(wordBytes: UInt8[], reverseEndianness = false): Field {
+        return wordBytes.reduce((acc, byte, idx) => {
+            const shiftBits = reverseEndianness ? (3 - idx) : idx;
+            const shift = 1n << BigInt(8 * shiftBits);
+            return acc.add(byte.value.mul(shift));
+        }, Field.from(0));
     }
+
+
+    /**
+     * Convert a Field element to an array of UInt8. Expects little endian representation.
+     * @param bytesPerWord number of bytes per word
+     */
+    static wordToBytes(word: Field, bytesPerWord = 8, reverseEndianness = false): UInt8[] {
+        let bytes = Provable.witness(Provable.Array(UInt8, bytesPerWord), () => {
+            let w = word.toBigInt();
+            return Array.from({ length: bytesPerWord }, (_, k) => {
+                const shiftBits = reverseEndianness ? (3 - k) : k;
+                return UInt8.from((w >> BigInt(8 * shiftBits)) & 0xffn)
+            });
+        });
+
+        // Check decomposition
+        ChaChaState.bytesToWord(bytes, reverseEndianness).assertEquals(word);
+
+        return bytes;
+    }
+
 
     /**
      * Performs the ChaCha quarter-round operation on four words in the state array.
@@ -221,8 +238,18 @@ class ChaChaState {
             ChaChaState.innerBlock(workingState.state);
         }
 
-        // Add the original state to the transformed state and return the result in little-endian format.
+        // Add the original state to the transformed state and
         workingState.add(state);
-        return workingState.toLe4Bytes();
+
+        // Return the result in little-endian format.
+        const updatedWorkingState = workingState.state.map((item: { value: Field; }) => 
+            ChaChaState.bytesToWord(ChaChaState.wordToBytes(item.value, 4), true)
+        );
+        
+        // Field[] to UInt32[] conversion
+        const transformedValues: UInt32[] = updatedWorkingState.map((value: Field) => 
+            UInt32.Unsafe.fromField(value)
+        );
+        return transformedValues;
     }
 }
