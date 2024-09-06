@@ -62,6 +62,15 @@ npm run testw # watch mode
 npm run coverage
 ```
 
+## How to run the example (run.ts)
+```sh
+npm run example
+```
+
+## Thanks
+
+Thanks to Mahmoud, Boray, and Gregor for their support!
+
 ## License
 
 [Apache-2.0](LICENSE)
