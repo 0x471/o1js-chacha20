@@ -21,8 +21,28 @@ More details can be found here: https://www.rfc-editor.org/rfc/rfc7539
 
 Here is a detailed comparison of symmetric encryption methods: https://soatok.blog/2020/07/12/comparison-of-symmetric-encryption-methods/
 
+## Data Overview
+
+| Category       | Count |
+|----------------|-------|
+| Total rows     | 10295 |
+| Generic        | 2762  |
+| EndoMulScalar  | 5526  |
+| Xor16          | 1338  |
+| Zero           | 669   |
+
+## Performance Metrics
+
+| Task    | Time      |
+|---------|-----------|
+| Compile | 2.213s   |
+| Prove   | 10.685s   |
+| Verify  | 720.243ms |
+
+MacBook Pro M1, 8GB RAM
+
 ## ToDo
-- Add test coverage for error handling
+- Improve test coverage
 
 ## How to build
 ```sh

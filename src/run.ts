@@ -10,7 +10,7 @@ let chacha20ZkProgram = ZkProgram({
                 Provable.Array(UInt32, 8),
                 Provable.Array(UInt32, 3),
                 UInt32,
-                Provable.Array(UInt32, 32),
+                Provable.Array(UInt32, 29),
             ],
 
             async method(
