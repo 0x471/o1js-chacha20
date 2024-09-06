@@ -238,7 +238,7 @@ class ChaChaState {
             ChaChaState.innerBlock(workingState.state);
         }
 
-        // Add the original state to the transformed state and
+        // Add the original state to the transformed state
         workingState.add(state);
 
         // Return the result in little-endian format.
